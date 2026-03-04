@@ -250,6 +250,131 @@ window.addEventListener('scroll', () => {
     }
 });
 
+// ===== Login Modal =====
+const loginOverlay = document.getElementById('loginOverlay');
+const loginClose = document.getElementById('loginClose');
+const loginStep1 = document.getElementById('loginStep1');
+const loginStep2 = document.getElementById('loginStep2');
+const loginBack = document.getElementById('loginBack');
+const loginForm = document.getElementById('loginForm');
+const navLoginBtn = document.getElementById('nav-login-btn');
+const navRefPartner = document.getElementById('nav-ref-partner');
+const roleCards = document.querySelectorAll('.login-role-card');
+
+function openLoginModal(preselectedRole) {
+    if (loginOverlay) {
+        loginOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        if (preselectedRole) {
+            showLoginForm(preselectedRole);
+        } else {
+            loginStep1.classList.remove('hidden');
+            loginStep2.classList.add('hidden');
+        }
+    }
+}
+
+function closeLoginModal() {
+    if (loginOverlay) {
+        loginOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            loginStep1.classList.remove('hidden');
+            loginStep2.classList.add('hidden');
+            if (loginForm) loginForm.reset();
+        }, 300);
+    }
+}
+
+function showLoginForm(role) {
+    const titleEl = document.getElementById('loginRoleTitle');
+    const subEl = document.getElementById('loginRoleSub');
+    const iconEl = document.getElementById('loginRoleIcon');
+    const idInput = document.getElementById('loginId');
+
+    if (role === 'referral') {
+        titleEl.textContent = 'Referral Partner Login';
+        subEl.textContent = 'Enter your referral partner credentials';
+        iconEl.textContent = '⚡';
+        idInput.placeholder = 'e.g. NC-CON-2026-48231';
+    } else {
+        titleEl.textContent = 'Operational Manager Login';
+        subEl.textContent = 'Enter your ops manager credentials';
+        iconEl.textContent = '📊';
+        idInput.placeholder = 'e.g. NV-OPS-001';
+    }
+
+    loginStep1.classList.add('hidden');
+    loginStep2.classList.remove('hidden');
+}
+
+if (navLoginBtn) {
+    navLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLoginModal();
+    });
+}
+
+if (navRefPartner) {
+    navRefPartner.addEventListener('click', (e) => {
+        e.preventDefault();
+        openLoginModal('referral');
+    });
+}
+
+if (loginClose) {
+    loginClose.addEventListener('click', closeLoginModal);
+}
+
+if (loginOverlay) {
+    loginOverlay.addEventListener('click', (e) => {
+        if (e.target === loginOverlay) closeLoginModal();
+    });
+}
+
+if (loginBack) {
+    loginBack.addEventListener('click', () => {
+        loginStep1.classList.remove('hidden');
+        loginStep2.classList.add('hidden');
+    });
+}
+
+roleCards.forEach(card => {
+    card.addEventListener('click', () => {
+        showLoginForm(card.dataset.role);
+    });
+});
+
+if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('loginId').value;
+        const pass = document.getElementById('loginPass').value;
+        if (id && pass) {
+            const btn = document.getElementById('loginSubmitBtn');
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.textContent = 'Success ✓';
+                btn.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    closeLoginModal();
+                    btn.textContent = 'Login';
+                    btn.style.backgroundColor = '';
+                    btn.disabled = false;
+                }, 800);
+            }, 1200);
+        }
+    });
+}
+
+// Escape key to close modal
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && loginOverlay && loginOverlay.classList.contains('active')) {
+        closeLoginModal();
+    }
+});
+
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Navachetana Livelihoods Website Initialized');
