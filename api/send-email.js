@@ -79,7 +79,6 @@ function sentBackHTML(name, appId, reason) {
 }
 
 module.exports = async (req, res) => {
-    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -98,22 +97,9 @@ module.exports = async (req, res) => {
         if (type === 'progress') {
             subject = `Application Under Review - ${app_id} | Navachetana Livelihoods`;
             html = progressHTML(name, app_id);
-            // Also notify admin
-            await transporter.sendMail({
-                from: `"Navachetana Livelihoods" <${process.env.SMTP_USER}>`,
-                to: ADMIN_EMAIL,
-                subject: `New Application: ${app_id} - ${name}`,
-                html: `<div style="font-family:'Segoe UI',Arial,sans-serif;padding:20px;"><h2 style="color:#0d9488;">New Empanelment Application</h2><p><strong>Name:</strong> ${name}</p><p><strong>App ID:</strong> ${app_id}</p><p><strong>Email:</strong> ${email}</p><p>Please log in to the Ops Dashboard to review.</p></div>`
-            });
         } else if (type === 'approval') {
             subject = `Approved! Your Login Credentials - ${app_id} | Navachetana`;
             html = approvalHTML(name, app_id, password);
-            await transporter.sendMail({
-                from: `"Navachetana Livelihoods" <${process.env.SMTP_USER}>`,
-                to: ADMIN_EMAIL,
-                subject: `Approved: ${app_id} - ${name}`,
-                html: `<div style="font-family:'Segoe UI',Arial,sans-serif;padding:20px;"><h2 style="color:#059669;">Application Approved</h2><p><strong>${name}</strong> (${app_id}) approved. Credentials sent to ${email}.</p></div>`
-            });
         } else if (type === 'sent_back') {
             subject = `Application Sent Back - ${app_id} | Navachetana`;
             html = sentBackHTML(name, app_id, reason);
@@ -121,9 +107,11 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Unknown email type' });
         }
 
+        // Single email to applicant, BCC admin
         await transporter.sendMail({
             from: `"Navachetana Livelihoods" <${process.env.SMTP_USER}>`,
             to: email,
+            bcc: ADMIN_EMAIL,
             subject,
             html
         });

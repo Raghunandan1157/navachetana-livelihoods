@@ -269,14 +269,14 @@ try {
     console.warn('Supabase not ready yet, will retry on DOMContentLoaded');
 }
 
-// ===== Email via Vercel API Route =====
+// ===== Email via Vercel API Route (fire-and-forget, 1 email per action) =====
 function sendProgressEmail(name, email, appId) {
     if (!email) return;
     fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'progress', email: email, name: name, app_id: appId })
-    }).then(r => r.json()).then(d => console.log('Progress email:', d)).catch(e => console.warn('Email error:', e));
+    }).catch(function() {});
 }
 
 function sendApprovalEmail(name, email, appId, password) {
@@ -285,7 +285,7 @@ function sendApprovalEmail(name, email, appId, password) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'approval', email: email, name: name, app_id: appId, password: password })
-    }).then(r => r.json()).then(d => console.log('Approval email:', d)).catch(e => console.warn('Email error:', e));
+    }).catch(function() {});
 }
 
 function sendSentBackEmail(name, email, appId, reason) {
@@ -294,7 +294,7 @@ function sendSentBackEmail(name, email, appId, reason) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'sent_back', email: email, name: name, app_id: appId, reason: reason })
-    }).then(r => r.json()).then(d => console.log('Sent back email:', d)).catch(e => console.warn('Email error:', e));
+    }).catch(function() {});
 }
 
 function generatePassword() {
