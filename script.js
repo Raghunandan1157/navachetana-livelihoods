@@ -269,70 +269,32 @@ try {
     console.warn('Supabase not ready yet, will retry on DOMContentLoaded');
 }
 
-// ===== EmailJS Config =====
-// To set up EmailJS:
-// 1. Create free account at https://www.emailjs.com
-// 2. Add Gmail as email service (use navachetana.raghu@gmail.com)
-// 3. Create email templates (progress, approval, sentback)
-// 4. Update the IDs below
-var EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';     // Replace after EmailJS setup
-var EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';     // Replace after EmailJS setup
-var EMAILJS_TEMPLATE_PROGRESS = 'YOUR_PROGRESS_TEMPLATE_ID';
-var EMAILJS_TEMPLATE_APPROVAL = 'YOUR_APPROVAL_TEMPLATE_ID';
-var EMAILJS_TEMPLATE_SENTBACK = 'YOUR_SENTBACK_TEMPLATE_ID';
-var ADMIN_EMAIL = 'raghunandanmali1157@gmail.com';
-
-// Initialize EmailJS
-try {
-    if (typeof emailjs !== 'undefined') {
-        emailjs.init(EMAILJS_PUBLIC_KEY);
-    }
-} catch(e) {
-    console.warn('EmailJS init skipped');
-}
-
-function sendEmailJS(templateId, params) {
-    if (typeof emailjs === 'undefined' || EMAILJS_PUBLIC_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
-        console.log('EmailJS not configured. Email would be sent to:', params.to_email, 'Template:', templateId);
-        console.log('Email params:', params);
-        return Promise.resolve(false);
-    }
-    return emailjs.send(EMAILJS_SERVICE_ID, templateId, params)
-        .then(function() { console.log('Email sent'); return true; })
-        .catch(function(err) { console.warn('Email error:', err); return false; });
-}
-
+// ===== Email via Vercel API Route =====
 function sendProgressEmail(name, email, appId) {
     if (!email) return;
-    sendEmailJS(EMAILJS_TEMPLATE_PROGRESS, {
-        to_email: email,
-        to_name: name,
-        app_id: appId,
-        status: 'Under Review',
-        admin_email: ADMIN_EMAIL
-    });
+    fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'progress', email: email, name: name, app_id: appId })
+    }).then(r => r.json()).then(d => console.log('Progress email:', d)).catch(e => console.warn('Email error:', e));
 }
 
 function sendApprovalEmail(name, email, appId, password) {
     if (!email) return;
-    sendEmailJS(EMAILJS_TEMPLATE_APPROVAL, {
-        to_email: email,
-        to_name: name,
-        app_id: appId,
-        password: password,
-        admin_email: ADMIN_EMAIL
-    });
+    fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'approval', email: email, name: name, app_id: appId, password: password })
+    }).then(r => r.json()).then(d => console.log('Approval email:', d)).catch(e => console.warn('Email error:', e));
 }
 
 function sendSentBackEmail(name, email, appId, reason) {
     if (!email) return;
-    sendEmailJS(EMAILJS_TEMPLATE_SENTBACK, {
-        to_email: email,
-        to_name: name,
-        app_id: appId,
-        reason: reason,
-        admin_email: ADMIN_EMAIL
-    });
+    fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'sent_back', email: email, name: name, app_id: appId, reason: reason })
+    }).then(r => r.json()).then(d => console.log('Sent back email:', d)).catch(e => console.warn('Email error:', e));
 }
 
 function generatePassword() {
@@ -729,6 +691,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 pan: document.getElementById('ef_pan').value.trim() || null,
                 address: document.getElementById('ef_address').value.trim(),
                 company: document.getElementById('ef_company').value.trim() || null,
+                ref_code: document.getElementById('ef_ref_code').value.trim() || null,
+                bank_details: document.getElementById('ef_bank').value.trim() || null,
+                udyam: document.getElementById('ef_udyam').value.trim() || null,
+                gst: document.getElementById('ef_gst').value.trim() || null,
                 status: 'pending'
             };
 

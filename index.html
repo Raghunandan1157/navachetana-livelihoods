@@ -774,6 +774,25 @@
                         <label for="ef_address">Address *</label>
                         <textarea id="ef_address" rows="3" placeholder="Your complete address" required></textarea>
                     </div>
+                    <div class="modal-form-group">
+                        <label for="ef_ref_code">Referral Code</label>
+                        <input type="text" id="ef_ref_code" placeholder="e.g. REF-0042">
+                    </div>
+                </div>
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#2563eb;">FINANCIAL & REGISTRATION</div>
+                    <div class="modal-form-group">
+                        <label for="ef_bank">Bank Details *</label>
+                        <input type="text" id="ef_bank" placeholder="e.g. SBI - XXXXXXX1234" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_udyam">Udyam Registration Number</label>
+                        <input type="text" id="ef_udyam" placeholder="e.g. UDYAM-KA-01-0012345">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_gst">GST Number</label>
+                        <input type="text" id="ef_gst" placeholder="e.g. 29ABCDE1234F1Z5">
+                    </div>
                 </div>
                 <button type="submit" class="ops-approve-btn" id="empanelFormSubmitBtn" style="width:100%;margin-top:4px;">Submit Application</button>
             </form>
@@ -1129,7 +1148,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
