@@ -10,14 +10,20 @@ const backToTop = document.getElementById('backToTop');
 const faqItems = document.querySelectorAll('.faq-item');
 
 // ===== Page Loader =====
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        if (loader) {
-            loader.classList.add('hidden');
-        }
-        document.body.classList.add('loaded');
-    }, 800);
-});
+function hideLoader() {
+    var l = document.getElementById('loader');
+    if (l) {
+        l.style.opacity = '0';
+        l.style.visibility = 'hidden';
+        l.style.pointerEvents = 'none';
+        setTimeout(function() { l.style.display = 'none'; }, 600);
+    }
+    document.body.classList.add('loaded');
+}
+// Hide loader on window load
+window.addEventListener('load', function() { setTimeout(hideLoader, 800); });
+// Failsafe: force hide after 2s no matter what
+setTimeout(hideLoader, 2000);
 
 // ===== Mobile Navigation Toggle =====
 if (navToggle) {
@@ -254,12 +260,99 @@ window.addEventListener('scroll', () => {
 });
 
 // ===== Supabase Init =====
-const SUPABASE_URL = 'https://zovnmmdfthpbubrorsgh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvdm5tbWRmdGhwYnVicm9yc2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NzE3ODgsImV4cCI6MjA3NzE0Nzc4OH0.92BH2sjUOgkw6iSRj1_4gt0p3eThg3QT4VK-Q4EdmBE';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var SUPABASE_URL = 'https://zovnmmdfthpbubrorsgh.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpvdm5tbWRmdGhwYnVicm9yc2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NzE3ODgsImV4cCI6MjA3NzE0Nzc4OH0.92BH2sjUOgkw6iSRj1_4gt0p3eThg3QT4VK-Q4EdmBE';
+var supabaseClient = null;
+try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (e) {
+    console.warn('Supabase not ready yet, will retry on DOMContentLoaded');
+}
+
+// ===== EmailJS Config =====
+// To set up EmailJS:
+// 1. Create free account at https://www.emailjs.com
+// 2. Add Gmail as email service (use navachetana.raghu@gmail.com)
+// 3. Create email templates (progress, approval, sentback)
+// 4. Update the IDs below
+var EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';     // Replace after EmailJS setup
+var EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';     // Replace after EmailJS setup
+var EMAILJS_TEMPLATE_PROGRESS = 'YOUR_PROGRESS_TEMPLATE_ID';
+var EMAILJS_TEMPLATE_APPROVAL = 'YOUR_APPROVAL_TEMPLATE_ID';
+var EMAILJS_TEMPLATE_SENTBACK = 'YOUR_SENTBACK_TEMPLATE_ID';
+var ADMIN_EMAIL = 'raghunandanmali1157@gmail.com';
+
+// Initialize EmailJS
+try {
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+    }
+} catch(e) {
+    console.warn('EmailJS init skipped');
+}
+
+function sendEmailJS(templateId, params) {
+    if (typeof emailjs === 'undefined' || EMAILJS_PUBLIC_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
+        console.log('EmailJS not configured. Email would be sent to:', params.to_email, 'Template:', templateId);
+        console.log('Email params:', params);
+        return Promise.resolve(false);
+    }
+    return emailjs.send(EMAILJS_SERVICE_ID, templateId, params)
+        .then(function() { console.log('Email sent'); return true; })
+        .catch(function(err) { console.warn('Email error:', err); return false; });
+}
+
+function sendProgressEmail(name, email, appId) {
+    if (!email) return;
+    sendEmailJS(EMAILJS_TEMPLATE_PROGRESS, {
+        to_email: email,
+        to_name: name,
+        app_id: appId,
+        status: 'Under Review',
+        admin_email: ADMIN_EMAIL
+    });
+}
+
+function sendApprovalEmail(name, email, appId, password) {
+    if (!email) return;
+    sendEmailJS(EMAILJS_TEMPLATE_APPROVAL, {
+        to_email: email,
+        to_name: name,
+        app_id: appId,
+        password: password,
+        admin_email: ADMIN_EMAIL
+    });
+}
+
+function sendSentBackEmail(name, email, appId, reason) {
+    if (!email) return;
+    sendEmailJS(EMAILJS_TEMPLATE_SENTBACK, {
+        to_email: email,
+        to_name: name,
+        app_id: appId,
+        reason: reason,
+        admin_email: ADMIN_EMAIL
+    });
+}
+
+function generatePassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let pass = '';
+    for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    return pass;
+}
 
 // ===== Referal Agent - Login & Empannel =====
 document.addEventListener('DOMContentLoaded', () => {
+    // Retry Supabase init if it failed at top level
+    if (!supabaseClient && window.supabase) {
+        try {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.error('Supabase init failed:', e);
+        }
+    }
+
     const loginModal = document.getElementById('loginModal');
     const empannelPage = document.getElementById('empannelPage');
     const opsPage = document.getElementById('opsPage');
@@ -277,7 +370,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!el) return;
         el.classList.remove('active');
         const anyActive = [loginModal, empannelPage, opsPage, opsDetailPage,
-            document.getElementById('empanelFormPage'), document.getElementById('empanelSuccessPage')].some(
+            document.getElementById('empanelFormPage'), document.getElementById('empanelSuccessPage'),
+            document.getElementById('agentLoginModal'), document.getElementById('agentDashboardPage')].some(
             p => p && p !== el && p.classList.contains('active')
         );
         if (!anyActive) {
@@ -417,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Query ops_managers table
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('home_loan_ops_managers')
                     .select('*')
                     .eq('staff_id', id)
@@ -455,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Load applications from Supabase into Ops dashboard =====
     async function loadOpsApplications() {
-        const { data: apps, error } = await supabase
+        const { data: apps, error } = await supabaseClient
             .from('home_loan_applications')
             .select('*')
             .order('created_at', { ascending: false });
@@ -573,9 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
         empanelFormBackBtn.addEventListener('click', () => closePage(empanelFormPage));
     }
 
-    // ===== API Base URL =====
-    const API_BASE = 'http://localhost:5000';
-
     // ===== Empanel form submit — saves to Supabase + sends email =====
     const empanelForm = document.getElementById('empanelForm');
     if (empanelForm) {
@@ -590,12 +681,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const applicantName = document.getElementById('ef_name').value.trim();
             const applicantEmail = document.getElementById('ef_email').value.trim() || null;
-            const applicantPhone = document.getElementById('ef_phone').value.trim();
 
             const newApp = {
                 app_id: appId,
                 name: applicantName,
-                phone: applicantPhone,
+                phone: document.getElementById('ef_phone').value.trim(),
                 email: applicantEmail,
                 aadhaar: document.getElementById('ef_aadhaar').value.trim(),
                 pan: document.getElementById('ef_pan').value.trim() || null,
@@ -605,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const { error } = await supabase.from('home_loan_applications').insert([newApp]);
+                const { error } = await supabaseClient.from('home_loan_applications').insert([newApp]);
 
                 btn.textContent = 'Submit Application';
                 btn.disabled = false;
@@ -616,14 +706,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Send "under progress" email to applicant + admin notification
-                if (applicantEmail) {
-                    fetch(API_BASE + '/api/send-progress-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: applicantEmail, name: applicantName, app_id: appId })
-                    }).catch(err => console.log('Email send info:', err));
-                }
+                // Send "under progress" email
+                sendProgressEmail(applicantName, applicantEmail, appId);
 
                 empanelForm.reset();
                 closePage(empanelFormPage);
@@ -682,19 +766,17 @@ document.addEventListener('DOMContentLoaded', () => {
         approveBtn.disabled = true;
 
         // Get the application details
-        const { data: appData } = await supabase
+        const { data: appData } = await supabaseClient
             .from('home_loan_applications')
             .select('*')
             .eq('app_id', currentDetailAppId)
             .single();
 
         // Generate a random password
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-        let generatedPassword = '';
-        for (let i = 0; i < 8; i++) generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+        const generatedPassword = generatePassword();
 
         // Update application status
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('home_loan_applications')
             .update({ status: 'approved' })
             .eq('app_id', currentDetailAppId);
@@ -707,7 +789,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Create agent account in empanel_agents table
-        await supabase.from('empanel_agents').insert([{
+        await supabaseClient.from('empanel_agents').insert([{
             app_id: currentDetailAppId,
             password: generatedPassword,
             name: appData?.name || 'Agent',
@@ -716,18 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }]);
 
         // Send approval email with credentials
-        if (appData?.email) {
-            fetch(API_BASE + '/api/send-approval-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: appData.email,
-                    name: appData.name,
-                    app_id: currentDetailAppId,
-                    password: generatedPassword
-                })
-            }).catch(err => console.log('Approval email info:', err));
-        }
+        sendApprovalEmail(appData?.name || 'Agent', appData?.email, currentDetailAppId, generatedPassword);
 
         approveBtn.textContent = '✓ Approve';
         approveBtn.disabled = false;
@@ -753,13 +824,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!msg || !currentDetailAppId) return;
 
         // Get app details for email
-        const { data: appData } = await supabase
+        const { data: appData } = await supabaseClient
             .from('home_loan_applications')
             .select('*')
             .eq('app_id', currentDetailAppId)
             .single();
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('home_loan_applications')
             .update({ status: 'sent_back', send_back_reason: msg })
             .eq('app_id', currentDetailAppId);
@@ -770,19 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Send "sent back" email
-        if (appData?.email) {
-            fetch(API_BASE + '/api/send-status-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: appData.email,
-                    name: appData.name,
-                    app_id: currentDetailAppId,
-                    status: 'sent_back',
-                    reason: msg
-                })
-            }).catch(err => console.log('Send back email info:', err));
-        }
+        sendSentBackEmail(appData?.name || 'Applicant', appData?.email, currentDetailAppId, msg);
 
         document.getElementById('opsSendBackForm').style.display = 'none';
         document.getElementById('detailStatus').textContent = '↩ Sent Back';
@@ -798,35 +857,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('opsSendBackForm').style.display = 'none';
         document.getElementById('opsActionBtns').style.display = 'flex';
     });
-});
 
-// ===== Agent Login & Dashboard =====
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Navachetana Livelihoods Website Initialized');
-
-    // Add animation classes after a short delay
-    setTimeout(() => {
-        document.querySelectorAll('[data-aos]').forEach(el => {
-            el.classList.add('aos-animate');
-        });
-    }, 100);
-
-    const API_BASE = 'http://localhost:5000';
+    // ===== Agent Login & Dashboard =====
     const agentLoginModal = document.getElementById('agentLoginModal');
     const agentDashboardPage = document.getElementById('agentDashboardPage');
     const agentLoginForm = document.getElementById('agentLoginForm');
     let currentAgent = null;
-
-    function openPage(el) {
-        if (!el) return;
-        el.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    function closePage(el) {
-        if (!el) return;
-        el.classList.remove('active');
-        document.body.style.overflow = '';
-    }
 
     // Agent Login button
     const agentLoginBtn = document.getElementById('agentLoginBtn');
@@ -872,7 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (oldErr) oldErr.remove();
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('empanel_agents')
                     .select('*')
                     .eq('app_id', id)
@@ -918,7 +954,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentAgent = agent;
         const initial = (agent.name || 'A').charAt(0).toUpperCase();
 
-        // Set name/avatar across dashboard
         const els = {
             'agentWelcomeName': agent.name,
             'agentTopbarName': agent.name,
@@ -938,7 +973,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el) el.textContent = initial;
         });
 
-        // Load customers
         loadAgentCustomers();
     }
 
@@ -952,12 +986,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = document.getElementById('tab-' + tab);
             if (target) target.classList.add('active');
 
-            // Update topbar title
             const titles = { 'dashboard': 'Dashboard', 'add-customer': 'Add Customer', 'customers': 'My Customers', 'profile': 'My Profile' };
             const topTitle = document.querySelector('.agent-topbar-title');
             if (topTitle) topTitle.textContent = titles[tab] || 'Dashboard';
 
-            // Close sidebar on mobile
             const sidebar = document.querySelector('.agent-sidebar');
             if (sidebar) sidebar.classList.remove('open');
         });
@@ -977,7 +1009,6 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', () => {
             currentAgent = null;
             closePage(agentDashboardPage);
-            // Reset to dashboard tab
             document.querySelectorAll('.agent-nav-item').forEach(b => b.classList.remove('active'));
             document.querySelector('.agent-nav-item[data-tab="dashboard"]')?.classList.add('active');
             document.querySelectorAll('.agent-tab').forEach(t => t.classList.remove('active'));
@@ -989,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAgentCustomers() {
         if (!currentAgent) return;
 
-        const { data: customers, error } = await supabase
+        const { data: customers, error } = await supabaseClient
             .from('agent_customers')
             .select('*')
             .eq('agent_app_id', currentAgent.app_id)
@@ -1002,14 +1033,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const list = customers || [];
 
-        // Update stats
         document.getElementById('agentStatTotal').textContent = list.length;
         document.getElementById('agentStatProcessing').textContent = list.filter(c => c.status === 'processing' || c.status === 'submitted').length;
         document.getElementById('agentStatApproved').textContent = list.filter(c => c.status === 'approved').length;
         const totalAmount = list.reduce((sum, c) => sum + (parseFloat(c.loan_amount) || 0), 0);
         document.getElementById('agentStatAmount').textContent = totalAmount >= 100000 ? (totalAmount / 100000).toFixed(1) + 'L' : totalAmount.toLocaleString('en-IN');
 
-        // Render recent list (dashboard)
         const recentEl = document.getElementById('agentRecentList');
         if (recentEl) {
             if (list.length === 0) {
@@ -1019,7 +1048,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Render full customer list
         renderFilteredCustomers(list);
     }
 
@@ -1031,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'rejected': { bg: '#fef2f2', color: '#dc2626', label: 'Rejected' }
         };
         const st = statusColors[c.status] || statusColors['submitted'];
-        const amount = c.loan_amount ? '₹' + parseFloat(c.loan_amount).toLocaleString('en-IN') : '-';
+        const amount = c.loan_amount ? '\u20B9' + parseFloat(c.loan_amount).toLocaleString('en-IN') : '-';
         return `
             <div class="agent-customer-row">
                 <div class="agent-customer-info">
@@ -1108,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const { error } = await supabase.from('agent_customers').insert([customer]);
+                const { error } = await supabaseClient.from('agent_customers').insert([customer]);
 
                 btn.textContent = 'Submit Customer';
                 btn.disabled = false;
@@ -1120,8 +1148,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 addCustomerForm.reset();
-
-                // Show success and switch to customers tab
                 alert('Customer ' + customerId + ' added successfully!');
                 await loadAgentCustomers();
 
@@ -1164,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('empanel_agents')
                 .update({ password: newPass })
                 .eq('app_id', currentAgent.app_id);
@@ -1179,4 +1205,12 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Password updated successfully!');
         });
     }
+
+    // ===== Initialize =====
+    console.log('Navachetana Livelihoods Website Initialized');
+    setTimeout(() => {
+        document.querySelectorAll('[data-aos]').forEach(el => {
+            el.classList.add('aos-animate');
+        });
+    }, 100);
 });
