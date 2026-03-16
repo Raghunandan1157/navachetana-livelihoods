@@ -83,6 +83,14 @@
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
                 <li><a href="#faq">FAQ</a></li>
+                <li class="nav-dropdown">
+                    <a href="#" class="nav-dropdown-toggle">Referal Partner <span class="dropdown-arrow">&#9662;</span></a>
+                    <ul class="nav-dropdown-menu">
+                        <li><a href="#" id="empannelBtn">Empanel</a></li>
+                        <li><a href="#" id="agentLoginBtn">Agent Login</a></li>
+                        <li><a href="#" id="loginBtn">Ops Manager</a></li>
+                    </ul>
+                </li>
                 <li><a href="#contact" class="btn btn-primary btn-nav">Contact Us</a></li>
             </ul>
         </div>
@@ -643,6 +651,498 @@
         </svg>
     </a>
 
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+
+            <!-- Step 1: Choose Role -->
+            <div id="loginStepChoose">
+                <div class="modal-icon">&#128274;</div>
+                <h2 class="modal-title">Login</h2>
+                <p class="modal-subtitle">Select your role to continue</p>
+                <div class="login-role-list">
+                    <button class="login-role-btn" id="roleEmpanel">
+                        <div class="login-role-icon">&#9889;</div>
+                        <div class="login-role-text">
+                            <div class="login-role-name">Empanel</div>
+                            <div class="login-role-desc">Field ops &amp; client connections</div>
+                        </div>
+                        <span class="login-role-arrow">&#8594;</span>
+                    </button>
+                    <button class="login-role-btn" id="roleOps">
+                        <div class="login-role-icon">&#128202;</div>
+                        <div class="login-role-text">
+                            <div class="login-role-name">Operational Manager</div>
+                            <div class="login-role-desc">Reports &amp; analytics</div>
+                        </div>
+                        <span class="login-role-arrow">&#8594;</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Login Form -->
+            <div id="loginStepForm" style="display:none;">
+                <button class="modal-back-btn" id="loginBackBtn">&larr; Back</button>
+                <div class="modal-icon" id="loginRoleIcon">&#9889;</div>
+                <h2 class="modal-title" id="loginRoleTitle">Empanel Login</h2>
+                <p class="modal-subtitle">Enter your credentials to sign in</p>
+                <form id="loginForm">
+                    <div class="modal-form-group">
+                        <label for="loginId">ID</label>
+                        <input type="text" id="loginId" placeholder="e.g. NC-CON-2026-48231" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="modal-submit-btn" id="loginSubmitBtn">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empannel Welcome Back Page -->
+    <div class="empannel-page" id="empannelPage">
+        <div class="empannel-page-inner">
+            <button class="empannel-back-btn" id="empannelBackBtn">&larr; Back</button>
+            <div class="empannel-brand">
+                <div class="empannel-brand-icon">N</div>
+            </div>
+            <h2 class="empannel-title">Welcome back</h2>
+            <p class="empannel-subtitle">You have an existing application on file</p>
+
+            <div class="empannel-app-card" id="empannelViewDetails">
+                <div class="empannel-app-header">
+                    <div class="empannel-app-info">
+                        <div class="empannel-app-icon">&#128203;</div>
+                        <div>
+                            <div class="empannel-app-name">Rajesh Kumar</div>
+                            <div class="empannel-app-id">NC-CON-2026-48231</div>
+                        </div>
+                    </div>
+                    <span class="empannel-status-badge">&#9679; Under Review</span>
+                </div>
+                <div class="empannel-app-footer">
+                    <span class="empannel-app-date">Submitted 2026-02-28</span>
+                    <span class="empannel-app-link">View Details &rarr;</span>
+                </div>
+            </div>
+
+            <div class="empannel-divider">
+                <span>OR</span>
+            </div>
+
+            <div class="empannel-new-card" id="empannelNewBtn">
+                <div class="empannel-new-icon">+</div>
+                <div class="empannel-new-title">Empanel</div>
+                <div class="empannel-new-desc">Begin a fresh empanelment</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empanel Form Page -->
+    <div class="empannel-page" id="empanelFormPage">
+        <div class="empannel-page-inner">
+            <button class="empannel-back-btn" id="empanelFormBackBtn">&larr; Back</button>
+            <div class="empannel-brand">
+                <div class="empannel-brand-icon">N</div>
+            </div>
+            <h2 class="empannel-title">Empanel as Partner</h2>
+            <p class="empannel-subtitle">Fill in your details to begin onboarding</p>
+            <form id="empanelForm">
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#0d9488;">PERSONAL DETAILS</div>
+                    <div class="modal-form-group">
+                        <label for="ef_name">Full Name *</label>
+                        <input type="text" id="ef_name" placeholder="Your full name" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_phone">Phone Number *</label>
+                        <input type="tel" id="ef_phone" placeholder="+91 XXXXX XXXXX" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_email">Email Address</label>
+                        <input type="email" id="ef_email" placeholder="your@email.com">
+                    </div>
+                </div>
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#7c3aed;">IDENTITY DOCUMENTS</div>
+                    <div class="modal-form-group">
+                        <label for="ef_aadhaar">Aadhaar Number *</label>
+                        <input type="text" id="ef_aadhaar" placeholder="XXXX XXXX XXXX" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_pan">PAN Number</label>
+                        <input type="text" id="ef_pan" placeholder="ABCDE1234F">
+                    </div>
+                </div>
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#059669;">BUSINESS DETAILS</div>
+                    <div class="modal-form-group">
+                        <label for="ef_company">Company / Business Name</label>
+                        <input type="text" id="ef_company" placeholder="Your business name">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_address">Address *</label>
+                        <textarea id="ef_address" rows="3" placeholder="Your complete address" required></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="ops-approve-btn" id="empanelFormSubmitBtn" style="width:100%;margin-top:4px;">Submit Application</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Empanel Success Page -->
+    <div class="empannel-page" id="empanelSuccessPage">
+        <div class="empannel-page-inner" style="text-align:center;padding-top:120px;">
+            <div style="font-size:56px;margin-bottom:16px;">&#10003;</div>
+            <h2 class="empannel-title">Application Submitted!</h2>
+            <p class="empannel-subtitle">Your details have been forwarded to our team.<br>We will get back to you shortly.</p>
+            <div class="ops-detail-card" style="text-align:left;margin-top:24px;">
+                <div class="ops-detail-section-label" style="color:#0d9488;">WHAT HAPPENS NEXT</div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Step 1</span><span class="ops-detail-value" style="font-family:inherit;">Document verification (1–2 days)</span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Step 2</span><span class="ops-detail-value" style="font-family:inherit;">Background check (2–3 days)</span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Step 3</span><span class="ops-detail-value" style="font-family:inherit;">Credentials issued via Email</span></div>
+            </div>
+            <button class="ops-approve-btn" id="empanelSuccessBackBtn" style="width:100%;margin-top:24px;">Back to Home</button>
+        </div>
+    </div>
+
+    <!-- Ops Dashboard Page -->
+    <div class="empannel-page" id="opsPage">
+        <div class="empannel-page-inner">
+            <button class="empannel-back-btn" id="opsBackBtn">&larr; Back</button>
+            <div class="empannel-brand">
+                <div class="empannel-brand-icon">N</div>
+            </div>
+            <h2 class="empannel-title">Operational Dashboard</h2>
+            <p class="empannel-subtitle">Welcome back, Manager</p>
+
+            <div class="ops-stats-grid">
+                <div class="ops-stat-card">
+                    <div class="ops-stat-number">3</div>
+                    <div class="ops-stat-label">Pending Reviews</div>
+                </div>
+                <div class="ops-stat-card">
+                    <div class="ops-stat-number">12</div>
+                    <div class="ops-stat-label">Approved This Month</div>
+                </div>
+                <div class="ops-stat-card">
+                    <div class="ops-stat-number">98%</div>
+                    <div class="ops-stat-label">Repayment Rate</div>
+                </div>
+                <div class="ops-stat-card">
+                    <div class="ops-stat-number">500+</div>
+                    <div class="ops-stat-label">Active Partners</div>
+                </div>
+            </div>
+
+            <div class="ops-app-list">
+                <div class="ops-app-list-header">Recent Applications</div>
+                <div id="opsAppList">
+                    <p style="text-align:center;color:#94a3b8;padding:20px;">Loading applications...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ops App Detail Page -->
+    <div class="empannel-page" id="opsDetailPage">
+        <div class="empannel-page-inner ops-detail-inner">
+            <button class="empannel-back-btn" id="opsDetailBackBtn">&larr; Applications</button>
+            <div class="empannel-brand" style="margin-top:12px;">
+                <div class="empannel-brand-icon">N</div>
+            </div>
+
+            <div class="ops-detail-header">
+                <div>
+                    <h2 class="empannel-title" id="detailName" style="margin-bottom:2px;text-align:left;font-size:20px;"></h2>
+                    <div class="empannel-app-id" id="detailId"></div>
+                </div>
+                <span class="empannel-status-badge" id="detailStatus">&#9679; Under Review</span>
+            </div>
+
+            <div class="ops-detail-card">
+                <div class="ops-detail-section-label" style="color:#0d9488;">IDENTITY</div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Aadhaar</span><span class="ops-detail-value" id="detailAadhaar"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">PAN</span><span class="ops-detail-value" id="detailPan"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Phone</span><span class="ops-detail-value" id="detailPhone"></span></div>
+            </div>
+
+            <div class="ops-detail-card">
+                <div class="ops-detail-section-label" style="color:#7c3aed;">DETAILS</div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Address</span><span class="ops-detail-value" id="detailAddress"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Company</span><span class="ops-detail-value" id="detailCompany"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Reference</span><span class="ops-detail-value" id="detailRef"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Submitted</span><span class="ops-detail-value" id="detailDate"></span></div>
+            </div>
+
+            <div class="ops-detail-card">
+                <div class="ops-detail-section-label" style="color:#059669;">DOCUMENTS</div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Banking</span><span class="ops-detail-value" id="detailBank"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Udyam</span><span class="ops-detail-value" id="detailUdyam"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">GST</span><span class="ops-detail-value" id="detailGst"></span></div>
+            </div>
+
+            <div class="ops-action-btns" id="opsActionBtns">
+                <button class="ops-approve-btn" id="opsApproveBtn">&#10003; Approve</button>
+                <button class="ops-sendback-btn" id="opsSendBackBtn">&#8617; Send Back</button>
+            </div>
+
+            <div class="ops-sendback-form" id="opsSendBackForm" style="display:none;">
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Tell the applicant what needs to be fixed:</p>
+                <textarea id="sendBackMsg" rows="4" placeholder="e.g. Banking details are unclear, please re-upload..."></textarea>
+                <div style="display:flex;gap:10px;margin-top:12px;">
+                    <button class="ops-approve-btn" style="background:#d97706;" id="opsSendBackSubmit">Send Back</button>
+                    <button class="ops-cancel-btn" id="opsSendBackCancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Login Modal -->
+    <div class="modal-overlay" id="agentLoginModal">
+        <div class="modal-content">
+            <button class="modal-close" id="agentModalClose">&times;</button>
+            <div class="modal-icon">&#128188;</div>
+            <h2 class="modal-title">Agent Login</h2>
+            <p class="modal-subtitle">Login with your approved credentials</p>
+            <form id="agentLoginForm">
+                <div class="modal-form-group">
+                    <label for="agentLoginId">Agent ID</label>
+                    <input type="text" id="agentLoginId" placeholder="e.g. NC-CON-2026-48231" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="agentLoginPassword">Password</label>
+                    <input type="password" id="agentLoginPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="modal-submit-btn" id="agentLoginSubmitBtn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Agent Dashboard Page -->
+    <div class="empannel-page" id="agentDashboardPage">
+        <div class="agent-dashboard">
+            <!-- Sidebar -->
+            <div class="agent-sidebar">
+                <div class="agent-sidebar-brand">
+                    <div class="empannel-brand-icon" style="width:36px;height:36px;font-size:16px;">N</div>
+                    <span class="agent-sidebar-title">Navachetana</span>
+                </div>
+                <nav class="agent-sidebar-nav">
+                    <button class="agent-nav-item active" data-tab="dashboard">
+                        <span class="agent-nav-icon">&#9632;</span> Dashboard
+                    </button>
+                    <button class="agent-nav-item" data-tab="add-customer">
+                        <span class="agent-nav-icon">+</span> Add Customer
+                    </button>
+                    <button class="agent-nav-item" data-tab="customers">
+                        <span class="agent-nav-icon">&#128101;</span> My Customers
+                    </button>
+                    <button class="agent-nav-item" data-tab="profile">
+                        <span class="agent-nav-icon">&#128100;</span> My Profile
+                    </button>
+                </nav>
+                <button class="agent-logout-btn" id="agentLogoutBtn">&#8592; Logout</button>
+            </div>
+
+            <!-- Main Content -->
+            <div class="agent-main">
+                <!-- Top Bar -->
+                <div class="agent-topbar">
+                    <button class="agent-menu-toggle" id="agentMenuToggle">&#9776;</button>
+                    <h3 class="agent-topbar-title">Dashboard</h3>
+                    <div class="agent-topbar-user">
+                        <span id="agentTopbarName">Agent</span>
+                        <div class="agent-avatar" id="agentTopbarAvatar">A</div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Tab -->
+                <div class="agent-tab active" id="tab-dashboard">
+                    <div class="agent-welcome-card">
+                        <h2>Welcome back, <span id="agentWelcomeName">Agent</span>!</h2>
+                        <p>Manage your customers and track your referral progress.</p>
+                    </div>
+
+                    <div class="agent-stats-grid">
+                        <div class="agent-stat-card">
+                            <div class="agent-stat-icon" style="background:#dbeafe;color:#2563eb;">&#128203;</div>
+                            <div class="agent-stat-number" id="agentStatTotal">0</div>
+                            <div class="agent-stat-label">Total Customers</div>
+                        </div>
+                        <div class="agent-stat-card">
+                            <div class="agent-stat-icon" style="background:#fef3c7;color:#d97706;">&#9203;</div>
+                            <div class="agent-stat-number" id="agentStatProcessing">0</div>
+                            <div class="agent-stat-label">Processing</div>
+                        </div>
+                        <div class="agent-stat-card">
+                            <div class="agent-stat-icon" style="background:#d1fae5;color:#059669;">&#10003;</div>
+                            <div class="agent-stat-number" id="agentStatApproved">0</div>
+                            <div class="agent-stat-label">Approved</div>
+                        </div>
+                        <div class="agent-stat-card">
+                            <div class="agent-stat-icon" style="background:#fce7f3;color:#db2777;">&#8377;</div>
+                            <div class="agent-stat-number" id="agentStatAmount">0</div>
+                            <div class="agent-stat-label">Total Loan Value</div>
+                        </div>
+                    </div>
+
+                    <div class="agent-recent-section">
+                        <h3>Recent Customers</h3>
+                        <div id="agentRecentList">
+                            <p style="text-align:center;color:#94a3b8;padding:30px;">No customers yet. Add your first customer!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Customer Tab -->
+                <div class="agent-tab" id="tab-add-customer">
+                    <h2 class="agent-tab-title">Add New Customer</h2>
+                    <p class="agent-tab-subtitle">Enter customer details for loan referral</p>
+                    <form id="addCustomerForm" class="agent-customer-form">
+                        <div class="agent-form-section">
+                            <div class="agent-form-section-title">Personal Information</div>
+                            <div class="agent-form-grid">
+                                <div class="modal-form-group">
+                                    <label for="cf_name">Full Name *</label>
+                                    <input type="text" id="cf_name" placeholder="Customer full name" required>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_phone">Phone Number *</label>
+                                    <input type="tel" id="cf_phone" placeholder="+91 XXXXX XXXXX" required>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_email">Email Address</label>
+                                    <input type="email" id="cf_email" placeholder="customer@email.com">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_address">Address *</label>
+                                    <textarea id="cf_address" rows="2" placeholder="Complete address" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="agent-form-section">
+                            <div class="agent-form-section-title">Identity Documents</div>
+                            <div class="agent-form-grid">
+                                <div class="modal-form-group">
+                                    <label for="cf_aadhaar">Aadhaar Number</label>
+                                    <input type="text" id="cf_aadhaar" placeholder="XXXX XXXX XXXX">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_pan">PAN Number</label>
+                                    <input type="text" id="cf_pan" placeholder="ABCDE1234F">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="agent-form-section">
+                            <div class="agent-form-section-title">Loan Details</div>
+                            <div class="agent-form-grid">
+                                <div class="modal-form-group">
+                                    <label for="cf_loan_amount">Loan Amount (INR) *</label>
+                                    <input type="number" id="cf_loan_amount" placeholder="e.g. 500000" required>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_loan_purpose">Loan Purpose *</label>
+                                    <select id="cf_loan_purpose" required>
+                                        <option value="">Select purpose</option>
+                                        <option value="Home Loan">Home Loan</option>
+                                        <option value="Business Loan">Business Loan</option>
+                                        <option value="Personal Loan">Personal Loan</option>
+                                        <option value="Education Loan">Education Loan</option>
+                                        <option value="Vehicle Loan">Vehicle Loan</option>
+                                        <option value="Agriculture Loan">Agriculture Loan</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_employment">Employment Type *</label>
+                                    <select id="cf_employment" required>
+                                        <option value="">Select type</option>
+                                        <option value="Salaried">Salaried</option>
+                                        <option value="Self-Employed">Self-Employed</option>
+                                        <option value="Business Owner">Business Owner</option>
+                                        <option value="Farmer">Farmer</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="cf_income">Monthly Income (INR)</label>
+                                    <input type="number" id="cf_income" placeholder="e.g. 30000">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="agent-form-section">
+                            <div class="modal-form-group">
+                                <label for="cf_notes">Additional Notes</label>
+                                <textarea id="cf_notes" rows="3" placeholder="Any additional information..."></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="ops-approve-btn" id="addCustomerSubmitBtn" style="width:100%;padding:14px;">Submit Customer</button>
+                    </form>
+                </div>
+
+                <!-- Customers Tab -->
+                <div class="agent-tab" id="tab-customers">
+                    <div class="agent-customers-header">
+                        <h2 class="agent-tab-title">My Customers</h2>
+                        <div class="agent-filter-row">
+                            <select id="agentFilterStatus" class="agent-filter-select">
+                                <option value="all">All Status</option>
+                                <option value="submitted">Submitted</option>
+                                <option value="processing">Processing</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <input type="text" id="agentSearchCustomer" class="agent-search-input" placeholder="Search by name or ID...">
+                        </div>
+                    </div>
+                    <div id="agentCustomersList" class="agent-customers-list">
+                        <p style="text-align:center;color:#94a3b8;padding:40px;">Loading customers...</p>
+                    </div>
+                </div>
+
+                <!-- Profile Tab -->
+                <div class="agent-tab" id="tab-profile">
+                    <h2 class="agent-tab-title">My Profile</h2>
+                    <div class="agent-profile-card">
+                        <div class="agent-profile-avatar" id="agentProfileAvatar">A</div>
+                        <h3 id="agentProfileName">Agent Name</h3>
+                        <p id="agentProfileId" style="color:#94a3b8;font-family:monospace;">NC-CON-XXXX-XXXXX</p>
+                    </div>
+                    <div class="ops-detail-card">
+                        <div class="ops-detail-section-label" style="color:#0d9488;">ACCOUNT DETAILS</div>
+                        <div class="ops-detail-row"><span class="ops-detail-label">Email</span><span class="ops-detail-value" id="agentProfileEmail">-</span></div>
+                        <div class="ops-detail-row"><span class="ops-detail-label">Phone</span><span class="ops-detail-value" id="agentProfilePhone">-</span></div>
+                        <div class="ops-detail-row"><span class="ops-detail-label">Status</span><span class="ops-detail-value" style="color:#059669;font-weight:600;">Active</span></div>
+                        <div class="ops-detail-row"><span class="ops-detail-label">Joined</span><span class="ops-detail-value" id="agentProfileJoined">-</span></div>
+                    </div>
+                    <div class="ops-detail-card">
+                        <div class="ops-detail-section-label" style="color:#7c3aed;">CHANGE PASSWORD</div>
+                        <form id="changePasswordForm">
+                            <div class="modal-form-group">
+                                <label for="cp_current">Current Password</label>
+                                <input type="password" id="cp_current" placeholder="Current password" required>
+                            </div>
+                            <div class="modal-form-group">
+                                <label for="cp_new">New Password</label>
+                                <input type="password" id="cp_new" placeholder="New password" required>
+                            </div>
+                            <div class="modal-form-group">
+                                <label for="cp_confirm">Confirm New Password</label>
+                                <input type="password" id="cp_confirm" placeholder="Confirm new password" required>
+                            </div>
+                            <button type="submit" class="ops-approve-btn" style="width:100%;">Update Password</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>
