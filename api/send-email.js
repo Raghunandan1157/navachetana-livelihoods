@@ -5,12 +5,12 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: 'navachetana.raghu@gmail.com',
-        pass: 'omgk ocek whtr bwho'
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
     }
 });
 
-const ADMIN_EMAIL = 'raghunandanmali1157@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 function progressHTML(name, appId) {
     return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
@@ -100,7 +100,7 @@ module.exports = async (req, res) => {
             html = progressHTML(name, app_id);
             // Also notify admin
             await transporter.sendMail({
-                from: '"Navachetana Livelihoods" <navachetana.raghu@gmail.com>',
+                from: `"Navachetana Livelihoods" <${process.env.SMTP_USER}>`,
                 to: ADMIN_EMAIL,
                 subject: `New Application: ${app_id} - ${name}`,
                 html: `<div style="font-family:'Segoe UI',Arial,sans-serif;padding:20px;"><h2 style="color:#0d9488;">New Empanelment Application</h2><p><strong>Name:</strong> ${name}</p><p><strong>App ID:</strong> ${app_id}</p><p><strong>Email:</strong> ${email}</p><p>Please log in to the Ops Dashboard to review.</p></div>`
@@ -109,7 +109,7 @@ module.exports = async (req, res) => {
             subject = `Approved! Your Login Credentials - ${app_id} | Navachetana`;
             html = approvalHTML(name, app_id, password);
             await transporter.sendMail({
-                from: '"Navachetana Livelihoods" <navachetana.raghu@gmail.com>',
+                from: `"Navachetana Livelihoods" <${process.env.SMTP_USER}>`,
                 to: ADMIN_EMAIL,
                 subject: `Approved: ${app_id} - ${name}`,
                 html: `<div style="font-family:'Segoe UI',Arial,sans-serif;padding:20px;"><h2 style="color:#059669;">Application Approved</h2><p><strong>${name}</strong> (${app_id}) approved. Credentials sent to ${email}.</p></div>`
@@ -122,7 +122,7 @@ module.exports = async (req, res) => {
         }
 
         await transporter.sendMail({
-            from: '"Navachetana Livelihoods" <navachetana.raghu@gmail.com>',
+            from: `"Navachetana Livelihoods" <${process.env.SMTP_USER}>`,
             to: email,
             subject,
             html
