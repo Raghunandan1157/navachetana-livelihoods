@@ -507,8 +507,10 @@ ul {
     background: linear-gradient(135deg, #f0fdfa 0%, #fff 50%, #ecfdf5 100%);
     z-index: 1100;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
@@ -522,7 +524,7 @@ ul {
 .empannel-page-inner {
     width: 100%;
     max-width: 500px;
-    padding: 0 24px;
+    padding: 40px 24px 60px;
 }
 
 .empannel-page.active .empannel-page-inner {
