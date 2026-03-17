@@ -322,13 +322,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedRole = 'empanel';
     let currentDetailAppId = null;
 
-    function openPage(el) {
+    window.openPage = function openPage(el) {
         if (!el) return;
         el.classList.add('active');
         document.body.style.overflow = 'hidden';
-    }
+    };
+    var openPage = window.openPage;
 
-    function closePage(el) {
+    window.closePage = function closePage(el) {
         if (!el) return;
         el.classList.remove('active');
         const anyActive = [loginModal, empannelPage, opsPage, opsDetailPage,
@@ -339,7 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!anyActive) {
             document.body.style.overflow = '';
         }
-    }
+    };
+    var closePage = window.closePage;
 
     var opsDetailPage = document.getElementById('opsDetailPage');
 
@@ -1083,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const agentLoginModal = document.getElementById('agentLoginModal');
     const agentDashboardPage = document.getElementById('agentDashboardPage');
     const agentLoginForm = document.getElementById('agentLoginForm');
-    let currentAgent = null;
+    window.currentAgent = window.currentAgent || null;
 
     // Agent Login button
     const agentLoginBtn = document.getElementById('agentLoginBtn');
@@ -1148,14 +1150,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Successful login
-                currentAgent = data;
+                window.currentAgent = data;
                 btn.textContent = 'Login';
                 btn.disabled = false;
                 agentLoginForm.reset();
                 closePage(agentLoginModal);
 
                 // Populate and open dashboard
-                initAgentDashboard(data);
+                window.initAgentDashboard(data);
                 openPage(agentDashboardPage);
 
             } catch (err) {
@@ -1171,8 +1173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===== Agent Dashboard Init =====
-    function initAgentDashboard(agent) {
-        currentAgent = agent;
+    window.initAgentDashboard = function initAgentDashboard(agent) {
+        window.currentAgent = agent;
         const initial = (agent.name || 'A').charAt(0).toUpperCase();
 
         const els = {
@@ -1228,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('agentLogoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            currentAgent = null;
+            window.currentAgent = null;
             closePage(agentDashboardPage);
             document.querySelectorAll('.agent-nav-item').forEach(b => b.classList.remove('active'));
             document.querySelector('.agent-nav-item[data-tab="dashboard"]')?.classList.add('active');
@@ -1239,12 +1241,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Load Agent Customers =====
     async function loadAgentCustomers() {
-        if (!currentAgent) return;
+        if (!window.currentAgent) return;
 
         const { data: customers, error } = await supabaseClient
             .from('home_loan_agent_customers')
             .select('*')
-            .eq('agent_app_id', currentAgent.app_id)
+            .eq('agent_app_id', window.currentAgent.app_id)
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -1331,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addCustomerForm) {
         addCustomerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentAgent) return;
+            if (!window.currentAgent) return;
 
             const btn = document.getElementById('addCustomerSubmitBtn');
             btn.textContent = 'Submitting...';
@@ -1341,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const customer = {
                 customer_id: customerId,
-                agent_app_id: currentAgent.app_id,
+                agent_app_id: window.currentAgent.app_id,
                 customer_name: document.getElementById('cf_name').value.trim(),
                 phone: document.getElementById('cf_phone').value.trim(),
                 email: document.getElementById('cf_email').value.trim() || null,
@@ -1392,13 +1394,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (changePasswordForm) {
         changePasswordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentAgent) return;
+            if (!window.currentAgent) return;
 
             const current = document.getElementById('cp_current').value;
             const newPass = document.getElementById('cp_new').value;
             const confirm = document.getElementById('cp_confirm').value;
 
-            if (current !== currentAgent.password) {
+            if (current !== window.currentAgent.password) {
                 alert('Current password is incorrect.');
                 return;
             }
@@ -1414,14 +1416,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const { error } = await supabaseClient
                 .from('home_loan_empanel_agents')
                 .update({ password: newPass })
-                .eq('app_id', currentAgent.app_id);
+                .eq('app_id', window.currentAgent.app_id);
 
             if (error) {
                 alert('Error updating password.');
                 return;
             }
 
-            currentAgent.password = newPass;
+            window.currentAgent.password = newPass;
             changePasswordForm.reset();
             alert('Password updated successfully!');
         });
