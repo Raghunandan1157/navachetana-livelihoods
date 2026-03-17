@@ -1478,16 +1478,24 @@
         var overlay = $('#adSuccessOverlay', self.dashboardPage);
         var idEl = overlay ? overlay.querySelector('.ad-success-id') : null;
         if (idEl) idEl.textContent = 'ID: ' + customerId;
-        if (overlay) overlay.style.display = 'flex';
+        if (overlay) {
+          overlay.style.display = 'flex';
+          // Click anywhere to dismiss immediately
+          overlay.onclick = function () {
+            overlay.style.display = 'none';
+            overlay.onclick = null;
+          };
+        }
 
         form.reset();
 
-        // Reload customers
-        await self.loadCustomers();
-
-        // Auto-dismiss and switch tab
+        // Auto-dismiss after 2s, then reload + switch tab
         setTimeout(function () {
-          if (overlay) overlay.style.display = 'none';
+          if (overlay) {
+            overlay.style.display = 'none';
+            overlay.onclick = null;
+          }
+          self.loadCustomers().catch(function () {});
           self.switchTab('customers');
         }, 2000);
 
