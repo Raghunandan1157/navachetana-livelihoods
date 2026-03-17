@@ -728,7 +728,7 @@
         </div>
     </div>
 
-    <!-- Empanel Form Page -->
+    <!-- Empanel Form Page (Multi-Step Wizard) -->
     <div class="empannel-page" id="empanelFormPage">
         <div class="empannel-page-inner">
             <button class="empannel-back-btn" id="empanelFormBackBtn">&larr; Back</button>
@@ -736,8 +736,39 @@
                 <div class="empannel-brand-icon">N</div>
             </div>
             <h2 class="empannel-title">Empanel as Partner</h2>
-            <p class="empannel-subtitle">Fill in your details to begin onboarding</p>
-            <form id="empanelForm">
+            <p class="empannel-subtitle" id="empanelStepSubtitle">Fill in your details to begin onboarding</p>
+
+            <!-- Progress Bar -->
+            <div class="empanel-progress-bar">
+                <div class="empanel-progress-step active" data-step="1">
+                    <div class="empanel-step-circle">1</div>
+                    <span class="empanel-step-label">Details</span>
+                </div>
+                <div class="empanel-progress-line"></div>
+                <div class="empanel-progress-step" data-step="2">
+                    <div class="empanel-step-circle">2</div>
+                    <span class="empanel-step-label">Documents</span>
+                </div>
+                <div class="empanel-progress-line"></div>
+                <div class="empanel-progress-step" data-step="3">
+                    <div class="empanel-step-circle">3</div>
+                    <span class="empanel-step-label">Review</span>
+                </div>
+            </div>
+
+            <!-- STEP 1: Personal & Business Details -->
+            <div id="empanelStep1" class="empanel-step-content">
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#7c3aed;">IDENTITY</div>
+                    <div class="modal-form-group">
+                        <label for="ef_aadhaar">Aadhaar Number *</label>
+                        <input type="text" id="ef_aadhaar" placeholder="XXXX XXXX XXXX" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="ef_pan">PAN Number *</label>
+                        <input type="text" id="ef_pan" placeholder="ABCDE1234F" required>
+                    </div>
+                </div>
                 <div class="ops-detail-card" style="padding:20px;">
                     <div class="ops-detail-section-label" style="color:#0d9488;">PERSONAL DETAILS</div>
                     <div class="modal-form-group">
@@ -749,53 +780,126 @@
                         <input type="tel" id="ef_phone" placeholder="+91 XXXXX XXXXX" required>
                     </div>
                     <div class="modal-form-group">
-                        <label for="ef_email">Email Address</label>
-                        <input type="email" id="ef_email" placeholder="your@email.com">
-                    </div>
-                </div>
-                <div class="ops-detail-card" style="padding:20px;">
-                    <div class="ops-detail-section-label" style="color:#7c3aed;">IDENTITY DOCUMENTS</div>
-                    <div class="modal-form-group">
-                        <label for="ef_aadhaar">Aadhaar Number *</label>
-                        <input type="text" id="ef_aadhaar" placeholder="XXXX XXXX XXXX" required>
+                        <label for="ef_email">Email Address *</label>
+                        <input type="email" id="ef_email" placeholder="your@email.com" required>
                     </div>
                     <div class="modal-form-group">
-                        <label for="ef_pan">PAN Number</label>
-                        <input type="text" id="ef_pan" placeholder="ABCDE1234F">
+                        <label for="ef_perm_address">Permanent Address *</label>
+                        <textarea id="ef_perm_address" rows="2" placeholder="Your full permanent address" required></textarea>
+                    </div>
+                    <div class="modal-form-group" style="position:relative;">
+                        <label for="ef_comm_address">Communication Address *</label>
+                        <textarea id="ef_comm_address" rows="2" placeholder="Full communication address" required></textarea>
+                        <button type="button" class="empanel-same-addr-btn" id="efSameAddrBtn">Same as Permanent</button>
                     </div>
                 </div>
                 <div class="ops-detail-card" style="padding:20px;">
                     <div class="ops-detail-section-label" style="color:#059669;">BUSINESS DETAILS</div>
                     <div class="modal-form-group">
-                        <label for="ef_company">Company / Business Name</label>
-                        <input type="text" id="ef_company" placeholder="Your business name">
+                        <label for="ef_company">Current Working Company *</label>
+                        <input type="text" id="ef_company" placeholder="Your business/company name" required>
                     </div>
                     <div class="modal-form-group">
-                        <label for="ef_address">Address *</label>
-                        <textarea id="ef_address" rows="3" placeholder="Your complete address" required></textarea>
+                        <label for="ef_ref_code">Reference Number *</label>
+                        <input type="text" id="ef_ref_code" placeholder="e.g. REF-0042" required>
                     </div>
                     <div class="modal-form-group">
-                        <label for="ef_ref_code">Referral Code</label>
-                        <input type="text" id="ef_ref_code" placeholder="e.g. REF-0042">
+                        <label for="ef_bank">Bank Name & Account Number *</label>
+                        <input type="text" id="ef_bank" placeholder="e.g. SBI - 1234567890" required>
+                    </div>
+                </div>
+                <button type="button" class="ops-approve-btn" id="empanelStep1Next" style="width:100%;margin-top:4px;" disabled>Next &rarr; Upload Documents</button>
+            </div>
+
+            <!-- STEP 2: Document Uploads -->
+            <div id="empanelStep2" class="empanel-step-content" style="display:none;">
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#fbbf24;">MANDATORY DOCUMENTS</div>
+                    <div class="empanel-doc-slot" id="docSlot_aadhaar" data-doc="aadhaar">
+                        <div class="empanel-doc-icon">&#129706;</div>
+                        <div class="empanel-doc-info">
+                            <div class="empanel-doc-label">Aadhaar Card <span class="empanel-doc-required">REQUIRED</span></div>
+                            <div class="empanel-doc-sublabel">Tap to upload</div>
+                        </div>
+                        <span class="empanel-doc-action">+</span>
+                        <input type="file" class="empanel-doc-input" id="docFile_aadhaar" accept="image/*,.pdf" style="display:none;">
+                    </div>
+                    <div class="empanel-doc-slot" id="docSlot_pan" data-doc="pan">
+                        <div class="empanel-doc-icon">&#128196;</div>
+                        <div class="empanel-doc-info">
+                            <div class="empanel-doc-label">PAN Card <span class="empanel-doc-required">REQUIRED</span></div>
+                            <div class="empanel-doc-sublabel">Tap to upload</div>
+                        </div>
+                        <span class="empanel-doc-action">+</span>
+                        <input type="file" class="empanel-doc-input" id="docFile_pan" accept="image/*,.pdf" style="display:none;">
+                    </div>
+                    <div class="empanel-doc-slot" id="docSlot_bank" data-doc="bank">
+                        <div class="empanel-doc-icon">&#127974;</div>
+                        <div class="empanel-doc-info">
+                            <div class="empanel-doc-label">Bank Passbook / Statement <span class="empanel-doc-required">REQUIRED</span></div>
+                            <div class="empanel-doc-sublabel">Tap to upload</div>
+                        </div>
+                        <span class="empanel-doc-action">+</span>
+                        <input type="file" class="empanel-doc-input" id="docFile_bank" accept="image/*,.pdf" style="display:none;">
                     </div>
                 </div>
                 <div class="ops-detail-card" style="padding:20px;">
-                    <div class="ops-detail-section-label" style="color:#2563eb;">FINANCIAL & REGISTRATION</div>
-                    <div class="modal-form-group">
-                        <label for="ef_bank">Bank Details *</label>
-                        <input type="text" id="ef_bank" placeholder="e.g. SBI - XXXXXXX1234" required>
+                    <div class="ops-detail-section-label" style="color:#8b949e;">OPTIONAL DOCUMENTS</div>
+                    <div class="empanel-doc-slot" id="docSlot_udyam" data-doc="udyam">
+                        <div class="empanel-doc-icon">&#127981;</div>
+                        <div class="empanel-doc-info">
+                            <div class="empanel-doc-label">Udyam Certificate</div>
+                            <div class="empanel-doc-sublabel">Tap to upload</div>
+                        </div>
+                        <span class="empanel-doc-action">+</span>
+                        <input type="file" class="empanel-doc-input" id="docFile_udyam" accept="image/*,.pdf" style="display:none;">
                     </div>
-                    <div class="modal-form-group">
-                        <label for="ef_udyam">Udyam Registration Number</label>
-                        <input type="text" id="ef_udyam" placeholder="e.g. UDYAM-KA-01-0012345">
-                    </div>
-                    <div class="modal-form-group">
-                        <label for="ef_gst">GST Number</label>
-                        <input type="text" id="ef_gst" placeholder="e.g. 29ABCDE1234F1Z5">
+                    <div class="empanel-doc-slot" id="docSlot_gst" data-doc="gst">
+                        <div class="empanel-doc-icon">&#128203;</div>
+                        <div class="empanel-doc-info">
+                            <div class="empanel-doc-label">GST Certificate</div>
+                            <div class="empanel-doc-sublabel">Tap to upload</div>
+                        </div>
+                        <span class="empanel-doc-action">+</span>
+                        <input type="file" class="empanel-doc-input" id="docFile_gst" accept="image/*,.pdf" style="display:none;">
                     </div>
                 </div>
-                <button type="submit" class="ops-approve-btn" id="empanelFormSubmitBtn" style="width:100%;margin-top:4px;">Submit Application</button>
-            </form>
+                <div style="display:flex;gap:10px;margin-top:4px;">
+                    <button type="button" class="ops-cancel-btn" id="empanelStep2Back" style="flex:1;">&larr; Back</button>
+                    <button type="button" class="ops-approve-btn" id="empanelStep2Next" style="flex:2;" disabled>Next &rarr; Review</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Review & Submit -->
+            <div id="empanelStep3" class="empanel-step-content" style="display:none;">
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#7c3aed;">IDENTITY</div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Aadhaar</span><span class="ops-detail-value" id="reviewAadhaar"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">PAN</span><span class="ops-detail-value" id="reviewPan"></span></div>
+                </div>
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#0d9488;">PERSONAL</div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Name</span><span class="ops-detail-value" id="reviewName"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Phone</span><span class="ops-detail-value" id="reviewPhone"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Email</span><span class="ops-detail-value" id="reviewEmail"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Permanent Address</span><span class="ops-detail-value" id="reviewPermAddr"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Communication Address</span><span class="ops-detail-value" id="reviewCommAddr"></span></div>
+                </div>
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#059669;">BUSINESS</div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Company</span><span class="ops-detail-value" id="reviewCompany"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Reference</span><span class="ops-detail-value" id="reviewRef"></span></div>
+                    <div class="ops-detail-row"><span class="ops-detail-label">Bank Details</span><span class="ops-detail-value" id="reviewBank"></span></div>
+                </div>
+                <div class="ops-detail-card" style="padding:20px;">
+                    <div class="ops-detail-section-label" style="color:#2563eb;">DOCUMENTS UPLOADED</div>
+                    <div id="reviewDocsContainer"></div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:4px;">
+                    <button type="button" class="ops-cancel-btn" id="empanelStep3Back" style="flex:1;">&larr; Edit</button>
+                    <button type="button" class="ops-approve-btn" id="empanelFormSubmitBtn" style="flex:2;">Submit Application</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -873,22 +977,29 @@
                 <div class="ops-detail-section-label" style="color:#0d9488;">IDENTITY</div>
                 <div class="ops-detail-row"><span class="ops-detail-label">Aadhaar</span><span class="ops-detail-value" id="detailAadhaar"></span></div>
                 <div class="ops-detail-row"><span class="ops-detail-label">PAN</span><span class="ops-detail-value" id="detailPan"></span></div>
-                <div class="ops-detail-row"><span class="ops-detail-label">Phone</span><span class="ops-detail-value" id="detailPhone"></span></div>
             </div>
 
             <div class="ops-detail-card">
-                <div class="ops-detail-section-label" style="color:#7c3aed;">DETAILS</div>
-                <div class="ops-detail-row"><span class="ops-detail-label">Address</span><span class="ops-detail-value" id="detailAddress"></span></div>
+                <div class="ops-detail-section-label" style="color:#7c3aed;">PERSONAL</div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Phone</span><span class="ops-detail-value" id="detailPhone"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Email</span><span class="ops-detail-value" id="detailEmail"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Permanent Address</span><span class="ops-detail-value" id="detailPermAddress"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Communication Address</span><span class="ops-detail-value" id="detailCommAddress"></span></div>
+            </div>
+
+            <div class="ops-detail-card">
+                <div class="ops-detail-section-label" style="color:#059669;">BUSINESS</div>
                 <div class="ops-detail-row"><span class="ops-detail-label">Company</span><span class="ops-detail-value" id="detailCompany"></span></div>
                 <div class="ops-detail-row"><span class="ops-detail-label">Reference</span><span class="ops-detail-value" id="detailRef"></span></div>
+                <div class="ops-detail-row"><span class="ops-detail-label">Bank Details</span><span class="ops-detail-value" id="detailBank"></span></div>
                 <div class="ops-detail-row"><span class="ops-detail-label">Submitted</span><span class="ops-detail-value" id="detailDate"></span></div>
             </div>
 
             <div class="ops-detail-card">
-                <div class="ops-detail-section-label" style="color:#059669;">DOCUMENTS</div>
-                <div class="ops-detail-row"><span class="ops-detail-label">Banking</span><span class="ops-detail-value" id="detailBank"></span></div>
-                <div class="ops-detail-row"><span class="ops-detail-label">Udyam</span><span class="ops-detail-value" id="detailUdyam"></span></div>
-                <div class="ops-detail-row"><span class="ops-detail-label">GST</span><span class="ops-detail-value" id="detailGst"></span></div>
+                <div class="ops-detail-section-label" style="color:#2563eb;">UPLOADED DOCUMENTS</div>
+                <div id="detailDocsContainer">
+                    <p style="color:#94a3b8;font-size:13px;">No documents uploaded</p>
+                </div>
             </div>
 
             <div class="ops-action-btns" id="opsActionBtns">

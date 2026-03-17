@@ -598,13 +598,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('detailAadhaar').textContent = app.aadhaar || '—';
         document.getElementById('detailPan').textContent = app.pan || '—';
         document.getElementById('detailPhone').textContent = app.phone || '—';
-        document.getElementById('detailAddress').textContent = app.address || '—';
+        document.getElementById('detailEmail').textContent = app.email || '—';
+        document.getElementById('detailPermAddress').textContent = app.permanent_address || app.address || '—';
+        document.getElementById('detailCommAddress').textContent = app.communication_address || '—';
         document.getElementById('detailCompany').textContent = app.company || '—';
         document.getElementById('detailRef').textContent = app.ref_code || '—';
-        document.getElementById('detailDate').textContent = app.created_at ? app.created_at.split('T')[0] : '—';
         document.getElementById('detailBank').textContent = app.bank_details || '—';
-        document.getElementById('detailUdyam').textContent = app.udyam || '—';
-        document.getElementById('detailGst').textContent = app.gst || '—';
+        document.getElementById('detailDate').textContent = app.created_at ? app.created_at.split('T')[0] : '—';
+
+        // Render uploaded document links
+        const docsContainer = document.getElementById('detailDocsContainer');
+        const docFields = [
+            { key: 'doc_aadhaar', label: 'Aadhaar Card' },
+            { key: 'doc_pan', label: 'PAN Card' },
+            { key: 'doc_bank', label: 'Bank Passbook' },
+            { key: 'doc_udyam', label: 'Udyam Certificate' },
+            { key: 'doc_gst', label: 'GST Certificate' },
+        ];
+        let docsHTML = '';
+        docFields.forEach(d => {
+            if (app[d.key]) {
+                docsHTML += '<div class="ops-doc-link-row"><span class="ops-doc-link-name">' + d.label + '</span><a href="' + app[d.key] + '" target="_blank" class="ops-doc-link-btn">View</a></div>';
+            }
+        });
+        docsContainer.innerHTML = docsHTML || '<p style="color:#94a3b8;font-size:13px;">No documents uploaded</p>';
 
         // Set status badge based on current status
         const detailStatus = document.getElementById('detailStatus');
@@ -664,15 +681,167 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const empanelFormBackBtn = document.getElementById('empanelFormBackBtn');
     if (empanelFormBackBtn) {
-        empanelFormBackBtn.addEventListener('click', () => closePage(empanelFormPage));
+        empanelFormBackBtn.addEventListener('click', () => {
+            // Reset wizard to step 1 when closing
+            empanelWizardStep = 1;
+            empanelDocFiles = { aadhaar: null, pan: null, bank: null, udyam: null, gst: null };
+            showEmpanelStep(1);
+            closePage(empanelFormPage);
+        });
     }
 
-    // ===== Empanel form submit — saves to Supabase + sends email =====
-    const empanelForm = document.getElementById('empanelForm');
-    if (empanelForm) {
-        empanelForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('empanelFormSubmitBtn');
+    // ===== Empanel Multi-Step Wizard =====
+    let empanelWizardStep = 1;
+    let empanelDocFiles = { aadhaar: null, pan: null, bank: null, udyam: null, gst: null };
+
+    function showEmpanelStep(step) {
+        empanelWizardStep = step;
+        document.getElementById('empanelStep1').style.display = step === 1 ? '' : 'none';
+        document.getElementById('empanelStep2').style.display = step === 2 ? '' : 'none';
+        document.getElementById('empanelStep3').style.display = step === 3 ? '' : 'none';
+
+        // Update progress bar
+        document.querySelectorAll('.empanel-progress-step').forEach(el => {
+            const s = parseInt(el.dataset.step);
+            el.classList.remove('active', 'done');
+            if (s === step) el.classList.add('active');
+            else if (s < step) el.classList.add('done');
+        });
+
+        // Update subtitle
+        const subtitles = {
+            1: 'Fill in your details to begin onboarding',
+            2: 'Upload your documents for verification',
+            3: 'Review your details before submitting'
+        };
+        document.getElementById('empanelStepSubtitle').textContent = subtitles[step];
+
+        // Re-animate
+        const content = document.getElementById('empanelStep' + step);
+        content.style.animation = 'none';
+        content.offsetHeight; // trigger reflow
+        content.style.animation = '';
+    }
+
+    // Step 1 validation
+    function validateStep1() {
+        const fields = ['ef_aadhaar', 'ef_pan', 'ef_name', 'ef_phone', 'ef_email', 'ef_perm_address', 'ef_comm_address', 'ef_company', 'ef_ref_code', 'ef_bank'];
+        const allFilled = fields.every(id => {
+            const el = document.getElementById(id);
+            return el && el.value.trim() !== '';
+        });
+        const nextBtn = document.getElementById('empanelStep1Next');
+        if (nextBtn) nextBtn.disabled = !allFilled;
+    }
+
+    // Add input listeners to all step 1 fields
+    ['ef_aadhaar', 'ef_pan', 'ef_name', 'ef_phone', 'ef_email', 'ef_perm_address', 'ef_comm_address', 'ef_company', 'ef_ref_code', 'ef_bank'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', validateStep1);
+    });
+
+    // "Same as Permanent" button
+    const sameAddrBtn = document.getElementById('efSameAddrBtn');
+    if (sameAddrBtn) {
+        sameAddrBtn.addEventListener('click', () => {
+            document.getElementById('ef_comm_address').value = document.getElementById('ef_perm_address').value;
+            validateStep1();
+        });
+    }
+
+    // Step 1 → Step 2
+    const step1Next = document.getElementById('empanelStep1Next');
+    if (step1Next) {
+        step1Next.addEventListener('click', () => showEmpanelStep(2));
+    }
+
+    // Step 2: Document upload slots
+    function validateStep2() {
+        const mandatoryDone = empanelDocFiles.aadhaar && empanelDocFiles.pan && empanelDocFiles.bank;
+        const nextBtn = document.getElementById('empanelStep2Next');
+        if (nextBtn) nextBtn.disabled = !mandatoryDone;
+    }
+
+    function updateDocSlotUI(docKey) {
+        const slot = document.getElementById('docSlot_' + docKey);
+        const file = empanelDocFiles[docKey];
+        if (!slot) return;
+        if (file) {
+            slot.classList.add('uploaded');
+            slot.querySelector('.empanel-doc-sublabel').textContent = file.name;
+            slot.querySelector('.empanel-doc-action').innerHTML = '&#10003;';
+        } else {
+            slot.classList.remove('uploaded');
+            slot.querySelector('.empanel-doc-sublabel').textContent = 'Tap to upload';
+            slot.querySelector('.empanel-doc-action').textContent = '+';
+        }
+        validateStep2();
+    }
+
+    ['aadhaar', 'pan', 'bank', 'udyam', 'gst'].forEach(docKey => {
+        const slot = document.getElementById('docSlot_' + docKey);
+        const fileInput = document.getElementById('docFile_' + docKey);
+        if (slot && fileInput) {
+            slot.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    empanelDocFiles[docKey] = e.target.files[0];
+                } else {
+                    empanelDocFiles[docKey] = null;
+                }
+                updateDocSlotUI(docKey);
+            });
+        }
+    });
+
+    // Step 2 → back to Step 1
+    const step2Back = document.getElementById('empanelStep2Back');
+    if (step2Back) {
+        step2Back.addEventListener('click', () => showEmpanelStep(1));
+    }
+
+    // Step 2 → Step 3 (Review)
+    const step2Next = document.getElementById('empanelStep2Next');
+    if (step2Next) {
+        step2Next.addEventListener('click', () => {
+            // Populate review fields
+            document.getElementById('reviewAadhaar').textContent = document.getElementById('ef_aadhaar').value.trim();
+            document.getElementById('reviewPan').textContent = document.getElementById('ef_pan').value.trim();
+            document.getElementById('reviewName').textContent = document.getElementById('ef_name').value.trim();
+            document.getElementById('reviewPhone').textContent = document.getElementById('ef_phone').value.trim();
+            document.getElementById('reviewEmail').textContent = document.getElementById('ef_email').value.trim();
+            document.getElementById('reviewPermAddr').textContent = document.getElementById('ef_perm_address').value.trim();
+            document.getElementById('reviewCommAddr').textContent = document.getElementById('ef_comm_address').value.trim();
+            document.getElementById('reviewCompany').textContent = document.getElementById('ef_company').value.trim();
+            document.getElementById('reviewRef').textContent = document.getElementById('ef_ref_code').value.trim();
+            document.getElementById('reviewBank').textContent = document.getElementById('ef_bank').value.trim();
+
+            // Populate docs review
+            const docsContainer = document.getElementById('reviewDocsContainer');
+            const docNames = { aadhaar: 'Aadhaar Card', pan: 'PAN Card', bank: 'Bank Passbook', udyam: 'Udyam Certificate', gst: 'GST Certificate' };
+            let docsHTML = '';
+            Object.keys(empanelDocFiles).forEach(key => {
+                if (empanelDocFiles[key]) {
+                    docsHTML += '<div class="ops-detail-row"><span class="ops-detail-label">' + docNames[key] + '</span><span class="ops-detail-value" style="color:#059669;">&#10003; ' + empanelDocFiles[key].name + '</span></div>';
+                }
+            });
+            docsContainer.innerHTML = docsHTML || '<p style="color:#94a3b8;font-size:13px;">No documents</p>';
+
+            showEmpanelStep(3);
+        });
+    }
+
+    // Step 3 → back to Step 2
+    const step3Back = document.getElementById('empanelStep3Back');
+    if (step3Back) {
+        step3Back.addEventListener('click', () => showEmpanelStep(2));
+    }
+
+    // ===== Empanel form submit — saves to Supabase + uploads docs + sends email =====
+    const empanelSubmitBtn = document.getElementById('empanelFormSubmitBtn');
+    if (empanelSubmitBtn) {
+        empanelSubmitBtn.addEventListener('click', async () => {
+            const btn = empanelSubmitBtn;
             btn.textContent = 'Submitting...';
             btn.disabled = true;
 
@@ -688,35 +857,83 @@ document.addEventListener('DOMContentLoaded', () => {
                 phone: document.getElementById('ef_phone').value.trim(),
                 email: applicantEmail,
                 aadhaar: document.getElementById('ef_aadhaar').value.trim(),
-                pan: document.getElementById('ef_pan').value.trim() || null,
-                address: document.getElementById('ef_address').value.trim(),
-                company: document.getElementById('ef_company').value.trim() || null,
-                ref_code: document.getElementById('ef_ref_code').value.trim() || null,
-                bank_details: document.getElementById('ef_bank').value.trim() || null,
-                udyam: document.getElementById('ef_udyam').value.trim() || null,
-                gst: document.getElementById('ef_gst').value.trim() || null,
+                pan: document.getElementById('ef_pan').value.trim(),
+                permanent_address: document.getElementById('ef_perm_address').value.trim(),
+                communication_address: document.getElementById('ef_comm_address').value.trim(),
+                company: document.getElementById('ef_company').value.trim(),
+                ref_code: document.getElementById('ef_ref_code').value.trim(),
+                bank_details: document.getElementById('ef_bank').value.trim(),
                 status: 'pending'
             };
 
             try {
+                // 1. Insert application row
                 const { error } = await supabaseClient.from('home_loan_applications').insert([newApp]);
+                if (error) {
+                    alert('Error submitting application. Please try again.');
+                    console.error('Supabase insert error:', error);
+                    btn.textContent = 'Submit Application';
+                    btn.disabled = false;
+                    return;
+                }
+
+                // 2. Upload documents to Supabase Storage (fire-and-forget for each)
+                const docKeys = ['aadhaar', 'pan', 'bank', 'udyam', 'gst'];
+                const uploadedDocUrls = {};
+
+                for (const key of docKeys) {
+                    const file = empanelDocFiles[key];
+                    if (!file) continue;
+                    try {
+                        const ext = file.name.split('.').pop();
+                        const storagePath = 'empanel-docs/' + appId + '/' + key + '.' + ext;
+                        const { error: uploadErr } = await supabaseClient.storage
+                            .from('empanel-docs')
+                            .upload(storagePath, file, { upsert: true });
+
+                        if (!uploadErr) {
+                            const { data: urlData } = supabaseClient.storage
+                                .from('empanel-docs')
+                                .getPublicUrl(storagePath);
+                            uploadedDocUrls[key] = urlData?.publicUrl || storagePath;
+                        }
+                    } catch (e) {
+                        console.warn('Doc upload failed for ' + key, e);
+                    }
+                }
+
+                // 3. Update the row with doc URLs
+                if (Object.keys(uploadedDocUrls).length > 0) {
+                    await supabaseClient.from('home_loan_applications')
+                        .update({
+                            doc_aadhaar: uploadedDocUrls.aadhaar || null,
+                            doc_pan: uploadedDocUrls.pan || null,
+                            doc_bank: uploadedDocUrls.bank || null,
+                            doc_udyam: uploadedDocUrls.udyam || null,
+                            doc_gst: uploadedDocUrls.gst || null,
+                        })
+                        .eq('app_id', appId);
+                }
+
+                // 4. Send "under progress" email
+                sendProgressEmail(applicantName, applicantEmail, appId);
+
+                // 5. Reset form & wizard
+                ['ef_aadhaar', 'ef_pan', 'ef_name', 'ef_phone', 'ef_email', 'ef_perm_address', 'ef_comm_address', 'ef_company', 'ef_ref_code', 'ef_bank'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                empanelDocFiles = { aadhaar: null, pan: null, bank: null, udyam: null, gst: null };
+                ['aadhaar', 'pan', 'bank', 'udyam', 'gst'].forEach(k => updateDocSlotUI(k));
+                empanelWizardStep = 1;
+                showEmpanelStep(1);
 
                 btn.textContent = 'Submit Application';
                 btn.disabled = false;
 
-                if (error) {
-                    alert('Error submitting application. Please try again.');
-                    console.error('Supabase insert error:', error);
-                    return;
-                }
-
-                // Send "under progress" email
-                sendProgressEmail(applicantName, applicantEmail, appId);
-
-                empanelForm.reset();
                 closePage(empanelFormPage);
 
-                // Update success page with the new app ID
+                // Show success page
                 const successIdEl = document.getElementById('empanelSuccessId');
                 if (successIdEl) successIdEl.textContent = appId;
                 openPage(empanelSuccessPage);

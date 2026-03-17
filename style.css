@@ -3065,3 +3065,220 @@ section {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== Empanel Multi-Step Wizard ===== */
+.empanel-progress-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 20px 0 28px;
+    padding: 0 10px;
+}
+
+.empanel-progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 1;
+}
+
+.empanel-step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 2px solid #334155;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.empanel-progress-step.active .empanel-step-circle {
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    border-color: #14b8a6;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
+}
+
+.empanel-progress-step.done .empanel-step-circle {
+    background: #059669;
+    border-color: #059669;
+    color: #fff;
+}
+
+.empanel-step-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.empanel-progress-step.active .empanel-step-label,
+.empanel-progress-step.done .empanel-step-label {
+    color: #14b8a6;
+}
+
+.empanel-progress-line {
+    flex: 1;
+    height: 2px;
+    background: #334155;
+    margin: 0 6px;
+    margin-bottom: 22px;
+    max-width: 80px;
+}
+
+.empanel-step-content {
+    animation: empanelFadeIn 0.3s ease;
+}
+
+@keyframes empanelFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Same-as-permanent button */
+.empanel-same-addr-btn {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #14b8a6;
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.empanel-same-addr-btn:hover {
+    background: rgba(20, 184, 166, 0.2);
+}
+
+/* ===== Document Upload Slots ===== */
+.empanel-doc-slot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1.5px dashed #334155;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.empanel-doc-slot:hover {
+    border-color: #14b8a6;
+    background: rgba(20, 184, 166, 0.04);
+}
+
+.empanel-doc-slot.uploaded {
+    border-color: #059669;
+    border-style: solid;
+    background: rgba(5, 150, 105, 0.08);
+}
+
+.empanel-doc-icon {
+    font-size: 24px;
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.empanel-doc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.empanel-doc-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #f1f5f9);
+    margin-bottom: 2px;
+}
+
+.empanel-doc-required {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    letter-spacing: 0.5px;
+}
+
+.empanel-doc-sublabel {
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.empanel-doc-action {
+    font-size: 20px;
+    color: #64748b;
+    font-weight: 700;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.empanel-doc-slot.uploaded .empanel-doc-action {
+    color: #059669;
+    background: rgba(5, 150, 105, 0.15);
+}
+
+.empanel-doc-slot.uploaded .empanel-doc-icon {
+    color: #059669;
+}
+
+/* Ops detail doc link rows */
+.ops-doc-link-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.ops-doc-link-row:last-child {
+    border-bottom: none;
+}
+
+.ops-doc-link-name {
+    font-size: 13px;
+    color: var(--text-primary, #f1f5f9);
+    font-weight: 500;
+}
+
+.ops-doc-link-btn {
+    font-size: 12px;
+    color: #14b8a6;
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.25);
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.ops-doc-link-btn:hover {
+    background: rgba(20, 184, 166, 0.2);
+}
