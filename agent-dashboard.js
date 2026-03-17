@@ -186,10 +186,7 @@
   AgentDashboard.prototype.init = async function () {
     var self = this;
 
-    // Load external deps in parallel
-    await Promise.all([loadLucide(), loadChartJS()]);
-
-    // Build enhanced dashboard structure
+    // Build enhanced dashboard structure FIRST (before CDN loads)
     this.buildDashboardHTML();
 
     // Populate topbar
@@ -204,14 +201,11 @@
     // Init mobile menu
     this.initMobileMenu();
 
-    // Init dashboard tab
+    // Init dashboard tab (static content)
     this.initDashboardTab();
 
     // Init add customer form
     this.initAddCustomerForm();
-
-    // Load customers
-    await this.loadCustomers();
 
     // Init profile tab
     this.initProfileTab();
@@ -222,8 +216,16 @@
       this.switchTab(savedTab, true);
     }
 
-    // Icons
+    // Load external deps in parallel (non-blocking for initial render)
+    await Promise.all([loadLucide(), loadChartJS()]);
+
+    // Now render charts and icons that need the CDN libs
+    this.renderLoanChart();
+    this.renderWeeklyChart();
     refreshIcons();
+
+    // Load customers (Supabase or mock)
+    await this.loadCustomers();
   };
 
   // ----- BUILD ENHANCED HTML -----
@@ -693,10 +695,7 @@
     // Render activity feed
     this.renderActivityFeed();
 
-    // Render charts
-    this.renderLoanChart();
-    this.renderWeeklyChart();
-
+    // Charts are rendered later in init() after CDN loads
     refreshIcons();
   };
 
@@ -1652,7 +1651,9 @@
 
     // Initialize dashboard
     var dashboard = new AgentDashboard(agent);
-    dashboard.init();
+    dashboard.init().catch(function (err) {
+      console.error('AgentDashboard init error:', err);
+    });
   };
 
   // =====================================================================
