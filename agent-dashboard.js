@@ -384,7 +384,7 @@
         '</button>' +
       '</form>' +
       // Success overlay
-      '<div class="ad-success-overlay" id="adSuccessOverlay" style="display:none;">' +
+      '<div class="ad-success-overlay" id="adSuccessOverlay">' +
         '<div class="ad-success-content">' +
           '<div class="ad-success-check"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="25" fill="none" stroke="#059669" stroke-width="2"/><path fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" class="ad-check-path"/></svg></div>' +
           '<h3>Customer Added Successfully!</h3>' +
@@ -861,14 +861,38 @@
 
     var self = this;
 
+    var totalCount = self.customers ? self.customers.length : 0;
+
     tab.innerHTML =
       // List view
-      '<div class="ad-customers-list-view" id="adCustomersListView">' +
-        '<div class="ad-customers-header">' +
-          '<h2 class="ad-tab-heading"><i data-lucide="users"></i> My Customers</h2>' +
-          '<div class="ad-filter-row">' +
-            '<div class="ad-search-wrap"><i data-lucide="search"></i><input type="text" id="adSearchCustomer" class="ad-search-input" placeholder="Search by name or ID..."></div>' +
-            '<select id="adFilterStatus" class="ad-filter-select">' +
+      '<div class="ad-cust-list-view" id="adCustomersListView">' +
+        // Summary bar
+        '<div class="ad-cust-summary">' +
+          '<div class="ad-cust-summary-stat">' +
+            '<div class="ad-cust-summary-num" id="adCustTotal">' + totalCount + '</div>' +
+            '<div class="ad-cust-summary-label">Total</div>' +
+          '</div>' +
+          '<div class="ad-cust-summary-stat">' +
+            '<div class="ad-cust-summary-num ad-cust-num-approved" id="adCustApproved">-</div>' +
+            '<div class="ad-cust-summary-label">Approved</div>' +
+          '</div>' +
+          '<div class="ad-cust-summary-stat">' +
+            '<div class="ad-cust-summary-num ad-cust-num-processing" id="adCustProcessing">-</div>' +
+            '<div class="ad-cust-summary-label">Processing</div>' +
+          '</div>' +
+          '<div class="ad-cust-summary-stat">' +
+            '<div class="ad-cust-summary-num ad-cust-num-submitted" id="adCustSubmitted">-</div>' +
+            '<div class="ad-cust-summary-label">Submitted</div>' +
+          '</div>' +
+        '</div>' +
+        // Toolbar
+        '<div class="ad-cust-toolbar">' +
+          '<div class="ad-cust-search-wrap">' +
+            '<i data-lucide="search"></i>' +
+            '<input type="text" id="adSearchCustomer" class="ad-cust-search" placeholder="Search customers...">' +
+          '</div>' +
+          '<div class="ad-cust-filters">' +
+            '<select id="adFilterStatus" class="ad-cust-filter-select">' +
               '<option value="all">All Status</option>' +
               '<option value="submitted">Submitted</option>' +
               '<option value="processing">Processing</option>' +
@@ -877,19 +901,22 @@
             '</select>' +
           '</div>' +
         '</div>' +
-        // Table header (desktop)
-        '<div class="ad-table-header">' +
-          '<div class="ad-th ad-th-customer">Customer</div>' +
-          '<div class="ad-th ad-th-type">Loan Type</div>' +
-          '<div class="ad-th ad-th-amount">Amount</div>' +
-          '<div class="ad-th ad-th-status">Status</div>' +
-          '<div class="ad-th ad-th-date">Date</div>' +
+        // Table
+        '<div class="ad-cust-table">' +
+          '<div class="ad-cust-thead">' +
+            '<span class="ad-cust-th ad-cust-th-name">Customer</span>' +
+            '<span class="ad-cust-th ad-cust-th-type">Loan Type</span>' +
+            '<span class="ad-cust-th ad-cust-th-amount">Amount</span>' +
+            '<span class="ad-cust-th ad-cust-th-status">Status</span>' +
+            '<span class="ad-cust-th ad-cust-th-date">Date</span>' +
+            '<span class="ad-cust-th ad-cust-th-action"></span>' +
+          '</div>' +
+          '<div class="ad-cust-tbody" id="adCustomersListContent"></div>' +
         '</div>' +
-        '<div id="adCustomersListContent"></div>' +
-        '<div class="ad-pagination" id="adPagination"></div>' +
+        '<div class="ad-cust-pagination" id="adPagination"></div>' +
       '</div>' +
       // Detail view
-      '<div class="ad-customer-detail-view" id="adCustomerDetailView" style="display:none;"></div>';
+      '<div class="ad-cust-detail-view" id="adCustomerDetailView" style="display:none;"></div>';
 
     // Event listeners
     var searchInput = $('#adSearchCustomer', this.dashboardPage);
@@ -911,7 +938,7 @@
     // Event delegation for row clicks and pagination
     tab.addEventListener('click', function (e) {
       // Customer row
-      var row = e.target.closest('.ad-customer-row-clickable');
+      var row = e.target.closest('.ad-cust-row');
       if (row && row.dataset.idx !== undefined) {
         var idx = parseInt(row.dataset.idx);
         var customer = self.filteredCustomers[idx];
@@ -926,7 +953,7 @@
         return;
       }
       // Back button
-      if (e.target.closest('.ad-back-btn')) {
+      if (e.target.closest('.ad-cust-back-btn')) {
         self.hideCustomerDetail();
         return;
       }
@@ -955,6 +982,14 @@
 
     this.filteredCustomers = list;
     this.renderCustomersList();
+
+    // Update summary stats
+    var all = this.customers || [];
+    var setCount = function (id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+    setCount('adCustTotal', all.length);
+    setCount('adCustApproved', all.filter(function (c) { return c.status === 'approved'; }).length);
+    setCount('adCustProcessing', all.filter(function (c) { return c.status === 'processing'; }).length);
+    setCount('adCustSubmitted', all.filter(function (c) { return c.status === 'submitted'; }).length);
   };
 
   AgentDashboard.prototype.renderCustomersList = function () {
@@ -984,17 +1019,19 @@
     container.innerHTML = pageItems.map(function (c, i) {
       var globalIdx = start + i;
       var st = getStatusInfo(c.status);
-      return '<div class="ad-customer-row-clickable" data-idx="' + globalIdx + '">' +
-        '<div class="ad-cr-customer">' +
-          '<div class="ad-customer-avatar">' + getInitials(c.customer_name) + '</div>' +
-          '<div><div class="ad-customer-name">' + escHTML(c.customer_name) + '</div>' +
-          '<div class="ad-customer-id">' + escHTML(c.customer_id) + '</div></div>' +
+      return '<div class="ad-cust-row" data-idx="' + globalIdx + '">' +
+        '<div class="ad-cust-cell ad-cust-cell-name">' +
+          '<div class="ad-cust-avatar">' + getInitials(c.customer_name) + '</div>' +
+          '<div class="ad-cust-name-block">' +
+            '<span class="ad-cust-name">' + escHTML(c.customer_name) + '</span>' +
+            '<span class="ad-cust-id">' + escHTML(c.customer_id) + '</span>' +
+          '</div>' +
         '</div>' +
-        '<div class="ad-cr-type">' + escHTML(c.loan_purpose || '-') + '</div>' +
-        '<div class="ad-cr-amount">' + formatINR(c.loan_amount) + '</div>' +
-        '<div class="ad-cr-status"><span class="ad-status-badge" style="background:' + st.bg + ';color:' + st.color + ';">' + st.label + '</span></div>' +
-        '<div class="ad-cr-date">' + formatDate(c.created_at) + '</div>' +
-        '<div class="ad-cr-arrow"><i data-lucide="chevron-right"></i></div>' +
+        '<div class="ad-cust-cell ad-cust-cell-type"><span class="ad-cust-type-pill">' + escHTML(c.loan_purpose || '-') + '</span></div>' +
+        '<div class="ad-cust-cell ad-cust-cell-amount">' + formatINR(c.loan_amount) + '</div>' +
+        '<div class="ad-cust-cell ad-cust-cell-status"><span class="ad-status-badge" style="background:' + st.bg + ';color:' + st.color + ';">' + st.label + '</span></div>' +
+        '<div class="ad-cust-cell ad-cust-cell-date">' + formatDate(c.created_at) + '</div>' +
+        '<div class="ad-cust-cell ad-cust-cell-action"><i data-lucide="chevron-right"></i></div>' +
       '</div>';
     }).join('');
 
@@ -1052,50 +1089,84 @@
       '</div>';
     }).join('');
 
-    var notesHTML = '';
-    if (c.notes) {
-      notesHTML = '<div class="ad-card ad-notes-card">' +
-        '<div class="ad-card-title"><i data-lucide="sticky-note"></i> Notes</div>' +
-        '<p>' + escHTML(c.notes) + '</p>' +
-      '</div>';
-    }
+    var notesHTML = c.notes ? true : false;
 
     detailView.innerHTML =
-      '<button class="ad-back-btn"><i data-lucide="arrow-left"></i> Back to Customers</button>' +
-      '<div class="ad-detail-layout">' +
-        // Left column
-        '<div class="ad-detail-left">' +
-          '<div class="ad-card ad-detail-profile-card">' +
-            '<div class="ad-detail-avatar">' + escHTML(initial) + '</div>' +
-            '<h3 class="ad-detail-name">' + escHTML(c.customer_name) + '</h3>' +
-            '<div class="ad-detail-id">' + escHTML(c.customer_id) + '</div>' +
-            '<span class="ad-status-badge" style="background:' + st.bg + ';color:' + st.color + ';margin-top:8px;display:inline-block;">' + st.label + '</span>' +
+      '<button class="ad-cust-back-btn"><i data-lucide="arrow-left"></i> Back to Customers</button>' +
+      // Hero card for the customer
+      '<div class="ad-cust-detail-hero">' +
+        '<div class="ad-cust-detail-hero-bg"></div>' +
+        '<div class="ad-cust-detail-hero-body">' +
+          '<div class="ad-cust-detail-avatar">' + escHTML(initial) + '</div>' +
+          '<div class="ad-cust-detail-hero-info">' +
+            '<h2 class="ad-cust-detail-name">' + escHTML(c.customer_name) + '</h2>' +
+            '<div class="ad-cust-detail-meta">' +
+              '<span class="ad-cust-detail-id"><i data-lucide="hash"></i>' + escHTML(c.customer_id) + '</span>' +
+              '<span class="ad-status-badge" style="background:' + st.bg + ';color:' + st.color + ';">' + st.label + '</span>' +
+            '</div>' +
           '</div>' +
-          '<div class="ad-card">' +
-            '<div class="ad-card-title"><i data-lucide="contact"></i> Contact Information</div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Phone</span><span class="ad-detail-value">' + escHTML(c.phone || '-') + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Email</span><span class="ad-detail-value">' + escHTML(c.email || '-') + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Address</span><span class="ad-detail-value">' + escHTML(c.address || '-') + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Aadhaar</span><span class="ad-detail-value">' + maskAadhaar(c.aadhaar) + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">PAN</span><span class="ad-detail-value">' + escHTML(c.pan || '-') + '</span></div>' +
+          '<div class="ad-cust-detail-amount-hero">' +
+            '<div class="ad-cust-detail-amount-label">Loan Amount</div>' +
+            '<div class="ad-cust-detail-amount-val">' + formatINR(c.loan_amount) + '</div>' +
           '</div>' +
         '</div>' +
-        // Right column
-        '<div class="ad-detail-right">' +
-          '<div class="ad-card">' +
-            '<div class="ad-card-title"><i data-lucide="indian-rupee"></i> Loan Information</div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Loan Type</span><span class="ad-detail-value">' + escHTML(c.loan_purpose || '-') + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Amount</span><span class="ad-detail-value ad-amount-highlight">' + formatINR(c.loan_amount) + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Employment</span><span class="ad-detail-value">' + escHTML(c.employment_type || '-') + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Monthly Income</span><span class="ad-detail-value">' + formatINR(c.monthly_income) + '</span></div>' +
-            '<div class="ad-detail-row"><span class="ad-detail-label">Applied On</span><span class="ad-detail-value">' + formatDate(c.created_at) + '</span></div>' +
-          '</div>' +
-          '<div class="ad-card">' +
-            '<div class="ad-card-title"><i data-lucide="git-branch"></i> Application Status</div>' +
-            '<div class="ad-timeline">' + timelineHTML + '</div>' +
-          '</div>' +
-          notesHTML +
+      '</div>' +
+      // Application Progress — first, full width
+      '<div class="ad-cust-progress-card">' +
+        '<div class="ad-cust-progress-header">' +
+          '<div class="ad-cust-progress-title"><i data-lucide="activity"></i> Application Progress</div>' +
+          '<span class="ad-status-badge" style="background:' + st.bg + ';color:' + st.color + ';">' + st.label + '</span>' +
         '</div>' +
+        '<div class="ad-cust-progress-track">' + timelineHTML + '</div>' +
+      '</div>' +
+      // Grid layout
+      '<div class="ad-cust-detail-grid">' +
+        // Contact card
+        '<div class="ad-cust-detail-card">' +
+          '<div class="ad-cust-detail-card-head">' +
+            '<div class="ad-cust-detail-card-icon"><i data-lucide="contact"></i></div>' +
+            '<div class="ad-cust-detail-card-title">Contact Information</div>' +
+          '</div>' +
+          '<div class="ad-cust-detail-fields">' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="phone"></i></div><div><div class="ad-cust-detail-fl">Phone</div><div class="ad-cust-detail-fv">' + escHTML(c.phone || '-') + '</div></div></div>' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="mail"></i></div><div><div class="ad-cust-detail-fl">Email</div><div class="ad-cust-detail-fv">' + escHTML(c.email || '-') + '</div></div></div>' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="map-pin"></i></div><div><div class="ad-cust-detail-fl">Address</div><div class="ad-cust-detail-fv">' + escHTML(c.address || '-') + '</div></div></div>' +
+          '</div>' +
+        '</div>' +
+        // Identity card
+        '<div class="ad-cust-detail-card">' +
+          '<div class="ad-cust-detail-card-head">' +
+            '<div class="ad-cust-detail-card-icon ad-cust-icon-id"><i data-lucide="fingerprint"></i></div>' +
+            '<div class="ad-cust-detail-card-title">Identity Documents</div>' +
+          '</div>' +
+          '<div class="ad-cust-detail-fields">' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="credit-card"></i></div><div><div class="ad-cust-detail-fl">Aadhaar</div><div class="ad-cust-detail-fv" style="font-family:monospace;">' + maskAadhaar(c.aadhaar) + '</div></div></div>' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="file-badge"></i></div><div><div class="ad-cust-detail-fl">PAN</div><div class="ad-cust-detail-fv" style="font-family:monospace;">' + escHTML(c.pan || '-') + '</div></div></div>' +
+          '</div>' +
+        '</div>' +
+        // Loan card
+        '<div class="ad-cust-detail-card">' +
+          '<div class="ad-cust-detail-card-head">' +
+            '<div class="ad-cust-detail-card-icon ad-cust-icon-loan"><i data-lucide="indian-rupee"></i></div>' +
+            '<div class="ad-cust-detail-card-title">Loan Details</div>' +
+          '</div>' +
+          '<div class="ad-cust-detail-fields">' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="tag"></i></div><div><div class="ad-cust-detail-fl">Loan Type</div><div class="ad-cust-detail-fv">' + escHTML(c.loan_purpose || '-') + '</div></div></div>' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="briefcase"></i></div><div><div class="ad-cust-detail-fl">Employment</div><div class="ad-cust-detail-fv">' + escHTML(c.employment_type || '-') + '</div></div></div>' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="wallet"></i></div><div><div class="ad-cust-detail-fl">Monthly Income</div><div class="ad-cust-detail-fv">' + formatINR(c.monthly_income) + '</div></div></div>' +
+            '<div class="ad-cust-detail-field"><div class="ad-cust-detail-fi"><i data-lucide="calendar"></i></div><div><div class="ad-cust-detail-fl">Applied On</div><div class="ad-cust-detail-fv">' + formatDate(c.created_at) + '</div></div></div>' +
+          '</div>' +
+        '</div>' +
+        // Notes card (if any)
+        (notesHTML ? (
+          '<div class="ad-cust-detail-card ad-cust-notes-card">' +
+            '<div class="ad-cust-detail-card-head">' +
+              '<div class="ad-cust-detail-card-icon ad-cust-icon-notes"><i data-lucide="sticky-note"></i></div>' +
+              '<div class="ad-cust-detail-card-title">Notes</div>' +
+            '</div>' +
+            '<p class="ad-cust-notes-text">' + escHTML(c.notes) + '</p>' +
+          '</div>'
+        ) : '') +
       '</div>';
 
     refreshIcons();
@@ -1126,63 +1197,127 @@
     var self = this;
     var initial = getInitials(agent.name);
 
+    var joinedDate = agent.created_at ? formatDate(agent.created_at) : '-';
+
     tab.innerHTML =
-      // Banner
-      '<div class="ad-profile-banner">' +
-        '<div class="ad-profile-banner-gradient"></div>' +
-        '<div class="ad-profile-banner-content">' +
-          '<div class="ad-profile-avatar-wrap">' +
-            '<div class="ad-profile-avatar-large">' + escHTML(initial) + '</div>' +
-            '<button class="ad-avatar-upload-btn" id="adAvatarUpload"><i data-lucide="camera"></i></button>' +
+      // Hero header card
+      '<div class="ad-prof-hero">' +
+        '<div class="ad-prof-hero-bg"></div>' +
+        '<div class="ad-prof-hero-inner">' +
+          '<div class="ad-prof-avatar">' +
+            '<span class="ad-prof-avatar-text">' + escHTML(initial) + '</span>' +
+            '<button class="ad-prof-avatar-btn" id="adAvatarUpload" title="Change avatar"><i data-lucide="camera"></i></button>' +
           '</div>' +
-          '<h2 class="ad-profile-display-name">' + escHTML(agent.name || 'Agent') + '</h2>' +
-          '<div class="ad-profile-display-id">' + escHTML(agent.app_id || '-') + '</div>' +
+          '<div class="ad-prof-hero-info">' +
+            '<h2 class="ad-prof-hero-name">' + escHTML(agent.name || 'Agent') + '</h2>' +
+            '<span class="ad-prof-hero-id"><i data-lucide="hash"></i>' + escHTML(agent.app_id || '-') + '</span>' +
+            '<div class="ad-prof-hero-badges">' +
+              '<span class="ad-prof-badge ad-prof-badge-active"><i data-lucide="check-circle-2"></i> Active</span>' +
+              '<span class="ad-prof-badge ad-prof-badge-date"><i data-lucide="calendar"></i> Joined ' + escHTML(joinedDate) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="ad-prof-edit-trigger" id="adProfileEditBtn"><i data-lucide="pencil-line"></i> Edit Profile</button>' +
         '</div>' +
       '</div>' +
-      // Account details card
-      '<div class="ad-card ad-profile-details-card">' +
-        '<div class="ad-card-title"><i data-lucide="settings"></i> Account Details <button class="ad-edit-btn" id="adProfileEditBtn"><i data-lucide="pencil"></i> Edit</button></div>' +
-        '<div id="adProfileDetailsView">' +
-          '<div class="ad-detail-row"><span class="ad-detail-label">Full Name</span><span class="ad-detail-value">' + escHTML(agent.name || '-') + '</span></div>' +
-          '<div class="ad-detail-row"><span class="ad-detail-label">Email</span><span class="ad-detail-value">' + escHTML(agent.email || '-') + '</span></div>' +
-          '<div class="ad-detail-row"><span class="ad-detail-label">Phone</span><span class="ad-detail-value">' + escHTML(agent.phone || '-') + '</span></div>' +
-          '<div class="ad-detail-row"><span class="ad-detail-label">Status</span><span class="ad-detail-value" style="color:#059669;font-weight:600;">Active</span></div>' +
-          '<div class="ad-detail-row"><span class="ad-detail-label">Joined</span><span class="ad-detail-value">' + (agent.created_at ? formatDate(agent.created_at) : '-') + '</span></div>' +
-        '</div>' +
-        '<div id="adProfileDetailsEdit" style="display:none;">' +
-          '<div class="ad-form-grid">' +
-            '<div class="ad-form-group"><label>Full Name</label><input type="text" id="adProfName" value="' + escHTML(agent.name || '') + '"></div>' +
-            '<div class="ad-form-group"><label>Email</label><input type="email" id="adProfEmail" value="' + escHTML(agent.email || '') + '"></div>' +
-            '<div class="ad-form-group"><label>Phone</label><input type="tel" id="adProfPhone" value="' + escHTML(agent.phone || '') + '"></div>' +
+
+      // Two-column layout
+      '<div class="ad-prof-grid">' +
+
+        // Left column — personal info
+        '<div class="ad-prof-col-main">' +
+          // View mode
+          '<div class="ad-prof-card" id="adProfileDetailsView">' +
+            '<div class="ad-prof-card-head">' +
+              '<div class="ad-prof-card-icon"><i data-lucide="user-circle"></i></div>' +
+              '<div><div class="ad-prof-card-title">Personal Information</div>' +
+              '<div class="ad-prof-card-desc">Your account details and contact info</div></div>' +
+            '</div>' +
+            '<div class="ad-prof-fields">' +
+              '<div class="ad-prof-field-item">' +
+                '<div class="ad-prof-field-icon"><i data-lucide="user"></i></div>' +
+                '<div class="ad-prof-field-body"><span class="ad-prof-field-label">Full Name</span><span class="ad-prof-field-val">' + escHTML(agent.name || '-') + '</span></div>' +
+              '</div>' +
+              '<div class="ad-prof-field-item">' +
+                '<div class="ad-prof-field-icon"><i data-lucide="mail"></i></div>' +
+                '<div class="ad-prof-field-body"><span class="ad-prof-field-label">Email Address</span><span class="ad-prof-field-val">' + escHTML(agent.email || '-') + '</span></div>' +
+              '</div>' +
+              '<div class="ad-prof-field-item">' +
+                '<div class="ad-prof-field-icon"><i data-lucide="phone"></i></div>' +
+                '<div class="ad-prof-field-body"><span class="ad-prof-field-label">Phone Number</span><span class="ad-prof-field-val">' + escHTML(agent.phone || '-') + '</span></div>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
-          '<div class="ad-profile-edit-actions">' +
-            '<button class="ad-btn-secondary" id="adProfileCancelBtn">Cancel</button>' +
-            '<button class="ad-btn-primary" id="adProfileSaveBtn"><i data-lucide="save"></i> Save Changes</button>' +
+          // Edit mode
+          '<div class="ad-prof-card" id="adProfileDetailsEdit" style="display:none;">' +
+            '<div class="ad-prof-card-head">' +
+              '<div class="ad-prof-card-icon"><i data-lucide="pen-square"></i></div>' +
+              '<div><div class="ad-prof-card-title">Edit Information</div>' +
+              '<div class="ad-prof-card-desc">Update your personal details below</div></div>' +
+            '</div>' +
+            '<div class="ad-prof-edit-fields">' +
+              '<div class="ad-form-group"><label>Full Name</label><input type="text" id="adProfName" value="' + escHTML(agent.name || '') + '"></div>' +
+              '<div class="ad-form-group"><label>Email</label><input type="email" id="adProfEmail" value="' + escHTML(agent.email || '') + '"></div>' +
+              '<div class="ad-form-group"><label>Phone</label><input type="tel" id="adProfPhone" value="' + escHTML(agent.phone || '') + '"></div>' +
+            '</div>' +
+            '<div class="ad-prof-edit-actions">' +
+              '<button class="ad-btn-secondary" id="adProfileCancelBtn"><i data-lucide="x"></i> Cancel</button>' +
+              '<button class="ad-btn-primary" id="adProfileSaveBtn"><i data-lucide="save"></i> Save Changes</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
-      '</div>' +
-      // Change password card
-      '<div class="ad-card ad-password-card">' +
-        '<button class="ad-card-title ad-collapsible-header" id="adPasswordToggle"><i data-lucide="lock"></i> Change Password <i data-lucide="chevron-down" class="ad-collapse-icon"></i></button>' +
-        '<div class="ad-collapsible-content" id="adPasswordContent" style="display:none;">' +
-          '<form id="adChangePasswordForm" novalidate>' +
-            '<div class="ad-form-group" data-field="cp_current">' +
-              '<label>Current Password</label>' +
-              '<input type="password" id="ad_cp_current" placeholder="Current password">' +
-              '<div class="ad-field-error"></div>' +
+
+        // Right column — security
+        '<div class="ad-prof-col-side">' +
+          // Quick stats card
+          '<div class="ad-prof-card ad-prof-stats-card">' +
+            '<div class="ad-prof-card-head">' +
+              '<div class="ad-prof-card-icon"><i data-lucide="bar-chart-3"></i></div>' +
+              '<div><div class="ad-prof-card-title">Quick Stats</div></div>' +
             '</div>' +
-            '<div class="ad-form-group" data-field="cp_new">' +
-              '<label>New Password</label>' +
-              '<input type="password" id="ad_cp_new" placeholder="New password (min 6 characters)">' +
-              '<div class="ad-field-error"></div>' +
+            '<div class="ad-prof-quick-stats">' +
+              '<div class="ad-prof-stat-item">' +
+                '<div class="ad-prof-stat-num" id="adProfStatCustomers">-</div>' +
+                '<div class="ad-prof-stat-label">Customers</div>' +
+              '</div>' +
+              '<div class="ad-prof-stat-item">' +
+                '<div class="ad-prof-stat-num ad-prof-stat-active" id="adProfStatActive">-</div>' +
+                '<div class="ad-prof-stat-label">Active</div>' +
+              '</div>' +
+              '<div class="ad-prof-stat-item">' +
+                '<div class="ad-prof-stat-num ad-prof-stat-pending" id="adProfStatPending">-</div>' +
+                '<div class="ad-prof-stat-label">Pending</div>' +
+              '</div>' +
             '</div>' +
-            '<div class="ad-form-group" data-field="cp_confirm">' +
-              '<label>Confirm New Password</label>' +
-              '<input type="password" id="ad_cp_confirm" placeholder="Confirm new password">' +
-              '<div class="ad-field-error"></div>' +
+          '</div>' +
+          // Password card
+          '<div class="ad-prof-card ad-prof-security-card">' +
+            '<button class="ad-prof-card-head ad-prof-security-toggle" id="adPasswordToggle">' +
+              '<div class="ad-prof-card-icon ad-prof-icon-security"><i data-lucide="shield"></i></div>' +
+              '<div style="flex:1;text-align:left;"><div class="ad-prof-card-title">Security</div>' +
+              '<div class="ad-prof-card-desc">Change your password</div></div>' +
+              '<i data-lucide="chevron-down" class="ad-collapse-icon"></i>' +
+            '</button>' +
+            '<div class="ad-prof-security-body" id="adPasswordContent" style="display:none;">' +
+              '<form id="adChangePasswordForm" novalidate>' +
+                '<div class="ad-form-group" data-field="cp_current">' +
+                  '<label>Current Password</label>' +
+                  '<input type="password" id="ad_cp_current" placeholder="Enter current password">' +
+                  '<div class="ad-field-error"></div>' +
+                '</div>' +
+                '<div class="ad-form-group" data-field="cp_new">' +
+                  '<label>New Password</label>' +
+                  '<input type="password" id="ad_cp_new" placeholder="Min 6 characters">' +
+                  '<div class="ad-field-error"></div>' +
+                '</div>' +
+                '<div class="ad-form-group" data-field="cp_confirm">' +
+                  '<label>Confirm Password</label>' +
+                  '<input type="password" id="ad_cp_confirm" placeholder="Re-enter new password">' +
+                  '<div class="ad-field-error"></div>' +
+                '</div>' +
+                '<button type="submit" class="ad-btn-primary" style="width:100%;"><i data-lucide="lock"></i> Update Password</button>' +
+              '</form>' +
             '</div>' +
-            '<button type="submit" class="ad-btn-primary" style="width:100%;">Update Password</button>' +
-          '</form>' +
+          '</div>' +
         '</div>' +
       '</div>';
 
@@ -1335,6 +1470,17 @@
         }
       });
     }
+
+    // Populate quick stats from cached customers
+    try {
+      var customers = self.customers || [];
+      var totalEl = $('#adProfStatCustomers', self.dashboardPage);
+      var activeEl = $('#adProfStatActive', self.dashboardPage);
+      var pendingEl = $('#adProfStatPending', self.dashboardPage);
+      if (totalEl) totalEl.textContent = customers.length;
+      if (activeEl) activeEl.textContent = customers.filter(function (c) { return c.status === 'approved'; }).length;
+      if (pendingEl) pendingEl.textContent = customers.filter(function (c) { return c.status === 'submitted' || c.status === 'pending'; }).length;
+    } catch (e) {}
 
     refreshIcons();
   };
