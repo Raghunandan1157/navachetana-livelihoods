@@ -1009,8 +1009,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Create agent account in empanel_agents table
-        await supabaseClient.from('empanel_agents').insert([{
+        // Create agent account in home_loan_empanel_agents table
+        await supabaseClient.from('home_loan_empanel_agents').insert([{
             app_id: currentDetailAppId,
             password: generatedPassword,
             name: appData?.name || 'Agent',
@@ -1130,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const { data, error } = await supabaseClient
-                    .from('empanel_agents')
+                    .from('home_loan_empanel_agents')
                     .select('*')
                     .eq('app_id', id)
                     .eq('password', pass)
@@ -1242,7 +1242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentAgent) return;
 
         const { data: customers, error } = await supabaseClient
-            .from('agent_customers')
+            .from('home_loan_agent_customers')
             .select('*')
             .eq('agent_app_id', currentAgent.app_id)
             .order('created_at', { ascending: false });
@@ -1357,7 +1357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const { error } = await supabaseClient.from('agent_customers').insert([customer]);
+                const { error } = await supabaseClient.from('home_loan_agent_customers').insert([customer]);
 
                 btn.textContent = 'Submit Customer';
                 btn.disabled = false;
@@ -1412,7 +1412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const { error } = await supabaseClient
-                .from('empanel_agents')
+                .from('home_loan_empanel_agents')
                 .update({ password: newPass })
                 .eq('app_id', currentAgent.app_id);
 

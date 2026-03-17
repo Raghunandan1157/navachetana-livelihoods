@@ -58,7 +58,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 8. Empanel Agents table (approved agents who can login)
-CREATE TABLE empanel_agents (
+CREATE TABLE home_loan_empanel_agents (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     app_id TEXT UNIQUE NOT NULL REFERENCES home_loan_applications(app_id),
     password TEXT NOT NULL,
@@ -70,10 +70,10 @@ CREATE TABLE empanel_agents (
 );
 
 -- 9. Customers table (entered by empaneled agents)
-CREATE TABLE agent_customers (
+CREATE TABLE home_loan_agent_customers (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     customer_id TEXT UNIQUE NOT NULL,
-    agent_app_id TEXT NOT NULL REFERENCES empanel_agents(app_id),
+    agent_app_id TEXT NOT NULL REFERENCES home_loan_empanel_agents(app_id),
     customer_name TEXT NOT NULL,
     phone TEXT NOT NULL,
     email TEXT,
@@ -91,15 +91,15 @@ CREATE TABLE agent_customers (
 );
 
 -- 10. Enable RLS on new tables
-ALTER TABLE empanel_agents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE agent_customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE home_loan_empanel_agents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE home_loan_agent_customers ENABLE ROW LEVEL SECURITY;
 
--- 11. Policies for empanel_agents
-CREATE POLICY "Anyone can read empanel_agents" ON empanel_agents FOR SELECT USING (true);
-CREATE POLICY "Anyone can insert empanel_agents" ON empanel_agents FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can update empanel_agents" ON empanel_agents FOR UPDATE USING (true);
+-- 11. Policies for home_loan_empanel_agents
+CREATE POLICY "Anyone can read home_loan_empanel_agents" ON home_loan_empanel_agents FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert home_loan_empanel_agents" ON home_loan_empanel_agents FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update home_loan_empanel_agents" ON home_loan_empanel_agents FOR UPDATE USING (true);
 
--- 12. Policies for agent_customers
-CREATE POLICY "Anyone can read agent_customers" ON agent_customers FOR SELECT USING (true);
-CREATE POLICY "Anyone can insert agent_customers" ON agent_customers FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can update agent_customers" ON agent_customers FOR UPDATE USING (true);
+-- 12. Policies for home_loan_agent_customers
+CREATE POLICY "Anyone can read home_loan_agent_customers" ON home_loan_agent_customers FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert home_loan_agent_customers" ON home_loan_agent_customers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update home_loan_agent_customers" ON home_loan_agent_customers FOR UPDATE USING (true);
